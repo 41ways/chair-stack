@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gaegu:wght@400;700&family=Gothic+A1:wght@500;700;800&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gaegu:wght@400;700&family=Gothic+A1:wght@500;700;800&family=Noto+Serif+KR:wght@700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <meta name="description" content="전시대 위에 의자를 하나씩 쌓아 올리는 물리 게임. 확장판은 룰렛이 흔들의자·스툴·소파·왕좌 중에서 골라 줘요.">
 <style>
 /* Layout: 한 화면 게임. 위 기록줄 · 가운데 전시장(캔버스) · 아래 조작줄. 확장판 룰렛은 전시장 오른쪽 위 */
@@ -22,30 +22,40 @@
   --font-body:"Gothic A1","IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --wall:#192024; --wall-2:#1d2529; --floor:#2b3230; --floor-line:#38403d;
-    --plinth:#2c363a; --plinth-edge:#414d51;
-    --ink:#e8ece5; --ink-soft:#9ba7a1; --line:#e8ece51c; --chalk:#9ba7a1;
-    --accent:#ff7556; --accent-ink:#1b110e;
-    --p2:#79a4e2;
-    --panel:#262f33; --panel-line:#e8ece51c; --shadow:0 10px 30px #00000059;
-    --hud-bg:#192024; --pad-bg:#2b3230;
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --wall:#192024; --wall-2:#1d2529; --floor:#2b3230; --floor-line:#38403d;
-  --plinth:#2c363a; --plinth-edge:#414d51;
-  --ink:#e8ece5; --ink-soft:#9ba7a1; --line:#e8ece51c; --chalk:#9ba7a1;
-  --accent:#ff7556; --accent-ink:#1b110e;
-  --p2:#79a4e2;
-  --panel:#262f33; --panel-line:#e8ece51c; --shadow:0 10px 30px #00000059;
-  --hud-bg:#192024; --pad-bg:#2b3230;
-  color-scheme:dark;
-}
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
+/* 테마: 처음 화면에서 고른다. 기본(쇼룸)은 :root, 나머지는 data-skin */
+:root[data-skin="sky"]{
+  --wall:#cfe3f1; --wall-2:#dcebf6; --floor:#f5efe4; --floor-line:#e3d9c8;
+  --plinth:#ffffff; --plinth-edge:#d6e4ee;
+  --ink:#1d3557; --ink-soft:#4b6283; --line:#1d355722; --chalk:#4b6283;
+  --accent:#1d3557; --accent-ink:#ffffff; --p2:#e76f51;
+  --panel:#ffffff; --panel-line:#1d35571f; --shadow:0 10px 30px #1d35571f;
+  --hud-bg:#cfe3f1; --pad-bg:#f5efe4;
+  --font-display:"Do Hyeon","Gowun Dodum",system-ui,sans-serif;
+  --font-body:"Gowun Dodum","Gothic A1",system-ui,sans-serif;
+}
+:root[data-skin="sky"] .logo,:root[data-skin="mint"] .logo{font-weight:400;font-size:30px}
+:root[data-skin="mint"]{
+  --wall:#d6eee4; --wall-2:#c2e3d6; --floor:#8fc4b0; --floor-line:#7ab29d;
+  --plinth:#ffffff; --plinth-edge:#c2e3d6;
+  --ink:#173d36; --ink-soft:#3d6a61; --line:#173d361f; --chalk:#3d6a61;
+  --accent:#e5483b; --accent-ink:#ffffff; --p2:#2f6fb0;
+  --panel:#ffffff; --panel-line:#173d361a; --shadow:0 10px 30px #173d361f;
+  --hud-bg:#d6eee4; --pad-bg:#8fc4b0;
+  --font-display:"Do Hyeon","Gothic A1",system-ui,sans-serif;
+}
+:root[data-skin="dark"]{
+  --wall:#3e4a5d; --wall-2:#46536a; --floor:#2b3341; --floor-line:#232a36;
+  --plinth:#cdbfa8; --plinth-edge:#a8987e;
+  --ink:#f3ecdd; --ink-soft:#c4c9d3; --line:#f3ecdd1f; --chalk:#aab2c0;
+  --accent:#f4b860; --accent-ink:#2b2214; --p2:#8fb8ff;
+  --panel:#4c5a70; --panel-line:#f3ecdd1f; --shadow:0 10px 30px #00000059;
+  --hud-bg:#3e4a5d; --pad-bg:#2b3341;
+  --font-display:"Noto Serif KR","Gothic A1",serif;
+  color-scheme:dark;
+}
+:root[data-skin="dark"] .logo{font-weight:700}
 /* 청소시간 테마: 칠판과 교실 바닥. 밝기 설정과 상관없이 한 가지 모습 */
 :root[data-skin="class"]{
   --wall:#2f4a3b; --wall-2:#2b4436; --floor:#c4945a; --floor-line:#a87943;
@@ -118,7 +128,7 @@ button:focus-visible,input:focus-visible+span{outline:2px solid var(--accent);ou
 .opt b{font-size:15px}
 .opt em{font-style:normal;font-size:12.5px;color:var(--ink-soft);line-height:1.5}
 .opt input:checked+span{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--panel))}
-.seg{display:inline-grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--panel-line);border-radius:10px;overflow:hidden;width:fit-content}
+.seg{display:inline-flex;flex-wrap:wrap;border:1.5px solid var(--panel-line);border-radius:10px;overflow:hidden;width:fit-content}
 .seg .opt>span{border:0;border-radius:0;padding:8px 16px;flex-direction:row;align-items:center;font-size:14px;font-weight:500}
 .seg .opt input:checked+span{background:var(--accent);color:var(--accent-ink)}
 .segnote{font-size:12.5px;color:var(--ink-soft)}
@@ -228,10 +238,13 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
         <div class="sect">
           <span class="lab">테마</span>
           <div class="seg">
-            <label class="opt"><input type="radio" name="skin" id="skinBasic" value="basic" checked><span>기본</span></label>
-            <label class="opt"><input type="radio" name="skin" id="skinClass" value="class"><span>청소시간</span></label>
+            <label class="opt"><input type="radio" name="skin" id="skin-basic" value="basic" checked><span>쇼룸</span></label>
+            <label class="opt"><input type="radio" name="skin" id="skin-sky" value="sky"><span>하늘</span></label>
+            <label class="opt"><input type="radio" name="skin" id="skin-mint" value="mint"><span>민트</span></label>
+            <label class="opt"><input type="radio" name="skin" id="skin-dark" value="dark"><span>다크</span></label>
+            <label class="opt"><input type="radio" name="skin" id="skin-class" value="class"><span>청소시간</span></label>
           </div>
-          <span class="segnote" id="skinNote">전시대 위에 쌓아요.</span>
+          <span class="segnote" id="skinNote">연한 세이지색 쇼룸, 흰 전시대 위에.</span>
         </div>
         <p class="keys">
           마우스 · 움직여서 위치, 휠로 회전, 클릭으로 놓기<br>
@@ -310,7 +323,16 @@ const TYPES = {
 const ORDER = ['chair','stool','rocking','bench','armchair','sofa','throne'];
 const SCHOOL = [{a:'#c98b4a',b:'#b77b3f',f:'#7c848b',g:'#697077'},{a:'#d9a066',b:'#c68b50',f:'#7c848b',g:'#697077'},{a:'#b9783f',b:'#a46a35',f:'#5f7f9c',g:'#506d87'}];
 const paint = (pal,k) => pal[k] ?? (k==='g' ? pal.b : pal.a);
-function palettesFor(type){ return S.skin==='class' && type==='chair' ? SCHOOL : TYPES[type].pal; }
+const SKIN_PAL = {
+  class:{ chair:SCHOOL },
+  sky:{ chair:[{a:'#f07b5a',b:'#cf5d3e'},{a:'#ffd166',b:'#e0b040'},{a:'#8ecae6',b:'#5fa8cc'},{a:'#ffffff',b:'#d5e2ec'}],
+        stool:[{a:'#ffd166',b:'#1d3557'}], bench:[{a:'#f4a261',b:'#d0803f'}], sofa:[{a:'#2a9d8f',b:'#1d3557',c:'#6cc5b8'}] },
+  mint:{ chair:[{a:'#e5483b',b:'#bf3a2f'},{a:'#f2c14e',b:'#d4a32e'},{a:'#ffffff',b:'#cfe5dc'},{a:'#2c5a51',b:'#173d36'}],
+        stool:[{a:'#ffffff',b:'#173d36'}], sofa:[{a:'#f2c14e',b:'#173d36',c:'#f7d986'}] },
+  dark:{ chair:[{a:'#e09f5a',b:'#a8703a'},{a:'#d27b7e',b:'#a95a5d'},{a:'#ead6b2',b:'#bda784'},{a:'#8fae98',b:'#6a8a74'}],
+        stool:[{a:'#ead6b2',b:'#8e7a5a'}], sofa:[{a:'#b5565a',b:'#241c18',c:'#d27b7e'}] },
+};
+function palettesFor(type){ const m=SKIN_PAL[S.skin]; return (m&&m[type]) || TYPES[type].pal; }
 for (const k of ORDER) { // 아이콘용 외곽
   let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
   for (const [x,y,w,h,a] of TYPES[k].parts) {
@@ -590,11 +612,18 @@ function render(now){
   const {w,h,s,dpr}=view; if(!w) return;
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.fillStyle=T.wall; ctx.fillRect(0,0,w,h);
+  if (S.skin==='sky'){ ctx.fillStyle=T.wall2; ctx.beginPath(); ctx.arc(w*.74,h*.3,Math.min(w,h)*.11,0,7); ctx.fill(); }
+  if (S.skin==='dark'){ const g=ctx.createRadialGradient(w*.8,h*.2,0,w*.8,h*.2,Math.max(w,h)*.5);
+    g.addColorStop(0,'rgba(244,184,96,.2)'); g.addColorStop(1,'rgba(244,184,96,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,w,h); }
   const vh=h/s, left=-w/2/s, right=w/2/s, top=S.camTop, bottom=top+vh;
   ctx.save(); ctx.translate(w/2,-top*s); ctx.scale(s,s);
 
   // 벽지 줄무늬
   const cls=S.skin==='class';
+  if (S.skin==='mint'){ ctx.strokeStyle=T.wall2; ctx.lineWidth=2; ctx.beginPath();
+    for (let x=Math.floor(left/48)*48; x<right; x+=48){ ctx.moveTo(x,top); ctx.lineTo(x,FLOOR_Y); }
+    for (let y=Math.floor(top/48)*48; y<FLOOR_Y; y+=48){ ctx.moveTo(left,y); ctx.lineTo(right,y); }
+    ctx.stroke(); }
   if (cls) { ctx.fillStyle=T.wall2; // 지우개 자국
     for (let y=Math.floor(top/260)*260; y<FLOOR_Y; y+=260){ ctx.fillRect(left+60,y+40,180,26); ctx.fillRect(right-260,y+150,200,22); } }
 
@@ -627,7 +656,7 @@ function render(now){
       for (let x=Math.floor(left/150)*150+(r%2)*75; x<right; x+=150) ctx.fillRect(x,y,1.5,28); } }
 
 
-  if (cls){ drawDesk(); } else {
+  if (cls){ drawDesk(); } else if (S.skin==='dark'){ drawCabinet(); } else {
   // 전시대
   ctx.fillStyle='rgba(0,0,0,.06)'; ctx.fillRect(-PLINTH_W/2+6,FLOOR_Y-2,PLINTH_W+10,6);
   ctx.beginPath(); rr(ctx,-PLINTH_W/2,0,PLINTH_W,FLOOR_Y,3); ctx.fillStyle=T.plinth; ctx.fill();
@@ -658,6 +687,16 @@ function render(now){
 }
 let bestCache={k:null,v:null,t:0};
 function loadBestCached(){ const k=bestKey(), t=performance.now(); if(bestCache.k!==k||t-bestCache.t>1000){ bestCache={k,v:loadBest(),t}; } return bestCache.v; }
+function drawCabinet(){ // 다크: 거실 장식장
+  const W=PLINTH_W;
+  ctx.fillStyle='rgba(0,0,0,.18)'; ctx.fillRect(-W/2+4,FLOOR_Y-3,W+8,6);
+  ctx.beginPath(); rr(ctx,-W/2,0,W,FLOOR_Y-8,3); ctx.fillStyle=T.plinth; ctx.fill();
+  ctx.fillStyle=shade(T.plinth,.92);
+  ctx.beginPath(); rr(ctx,-W/2+10,14,W/2-14,FLOOR_Y-36,2); ctx.fill();
+  ctx.beginPath(); rr(ctx,4,14,W/2-14,FLOOR_Y-36,2); ctx.fill();
+  ctx.fillStyle=T.plinthEdge; ctx.beginPath(); ctx.arc(-8,(FLOOR_Y-8)/2,3,0,7); ctx.arc(8,(FLOOR_Y-8)/2,3,0,7); ctx.fill();
+  ctx.fillStyle='#241c18'; ctx.fillRect(-W/2+8,FLOOR_Y-8,8,8); ctx.fillRect(W/2-16,FLOOR_Y-8,8,8);
+}
 function drawDesk(){ // 청소시간: 교실 책상
   const W=PLINTH_W;
   ctx.fillStyle='rgba(0,0,0,.12)'; ctx.fillRect(-W/2+4,FLOOR_Y-3,W+8,6);
@@ -759,9 +798,9 @@ $('btnMenu').addEventListener('click',toMenu);
 
 function setSkin(sk){
   S.skin=sk; const r=document.documentElement;
-  if (sk==='class') r.dataset.skin='class'; else delete r.dataset.skin;
+  if (sk!=='basic') r.dataset.skin=sk; else delete r.dataset.skin;
   try{ localStorage.setItem('chairstack.skin',sk); }catch(e){}
-  $('skinNote').textContent = sk==='class' ? '교실 책상 위에 의자를 올려요. 청소 시간처럼.' : '전시대 위에 쌓아요.';
+  $('skinNote').textContent = ({basic:'연한 세이지색 쇼룸, 흰 전시대 위에.',sky:'하늘색 오후, 흰 받침 위에.',mint:'민트 타일 벽 앞, 흰 받침 위에.',dark:'어두운 저녁 거실, 스탠드 불빛 아래 장식장 위에.',class:'교실 책상 위에 의자를 올려요. 청소 시간처럼.'})[sk];
   readTheme(); if (S.state==='menu') demo();
 }
 document.querySelectorAll('input[name=skin]').forEach(i=>i.addEventListener('change',()=>setSkin(i.value)));
@@ -772,11 +811,11 @@ function syncMenu(){
 document.querySelectorAll('input[name=mode],input[name=players]').forEach(i=>i.addEventListener('change',syncMenu));
 
 /* ── 테마 변화 감지 ── */
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTheme);
 new MutationObserver(readTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
 let savedSkin='basic'; try{ savedSkin=localStorage.getItem('chairstack.skin')||'basic'; }catch(e){}
-if (savedSkin==='class') $('skinClass').checked=true;
+if (!['basic','sky','mint','dark','class'].includes(savedSkin)) savedSkin='basic';
+$('skin-'+savedSkin).checked=true;
 setSkin(savedSkin); resize(); syncMenu(); demo();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ drawWheel(); });
 requestAnimationFrame(frame);
