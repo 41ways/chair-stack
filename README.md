@@ -2,14 +2,13 @@
 
 의자를 하나씩 쌓아 올리는 물리 게임. 하나라도 바닥에 떨어지면 끝.
 
-- 플레이: https://chair-stack.41ways.workers.dev/ (같이 하기까지 전부)
-- 혼자만: https://41ways.github.io/chair-stack/ (같이 하기는 위 주소의 서버에 붙는다)
+- 플레이: https://41ways.github.io/chair-stack/ (같이 하기까지 전부, 서버 없음)
 - 허브: https://41ways.github.io/norara/
 
 ## 하는 법
 
 - 혼자 하기: 최고 기록 도전, 또는 한 화면에서 둘이 번갈아
-- 같이 하기: 방을 만들어 최대 6명. 방 코드나 초대 링크로 들어오고, 열린 방 목록에서 고를 수도 있다. 채팅 있음
+- 같이 하기: 방을 만들어 최대 6명. 방 코드나 초대 링크로 들어온다. 채팅 있음. 방을 만든 사람이 나가면 방이 닫힌다
   - 차례는 무작위 순서로 돈다. 내 차례에 의자가 하나라도 떨어지면 그 사람이 진다
   - 45초 안에 못 놓거나 연결이 끊기면 차례가 넘어간다
 - 기본판은 나무 의자만, 확장판은 룰렛이 고른다 (나무 의자 32%, 흔들의자 26%, 빈백 22%, 아기 식탁 의자 13%, 왕좌 7%)
@@ -23,16 +22,14 @@
 ## 구조
 
 - `index.html` 화면 전부. 물리 엔진은 planck.js 1.4.3(jsDelivr)
-- `worker.js` Cloudflare Worker. `/ws` 소켓만 Durable Object 하나로 보내고 나머지는 정적 파일
-- `room.js` 방 · 채팅 · 차례. 물리는 서버가 돌리지 않는다. 차례인 사람 화면이 계산해 위치를 흘려보내고, 멈추면 탑 전체 위치를 올린다. 서버는 그걸 다음 차례의 출발점으로 저장하고, 어떤 의자가 나올지는 서버가 정한다
+- `room.js` 방 · 채팅 · 차례. v2.5부터 방을 만든 사람의 브라우저가 이걸 불러 돌린다. 다른 사람은 그 브라우저에 WebRTC(PeerJS 1.5.4)로 바로 붙고, 서로 찾는 것만 PeerJS 공용 중계(0.peerjs.com)를 거친다. 물리는 차례인 사람 화면이 계산해 위치를 흘려보내고, 멈추면 탑 전체 위치를 올린다. 방 쪽은 그걸 다음 차례의 출발점으로 저장하고, 어떤 의자가 나올지 정한다
+- `worker.js` v2.4까지 쓰던 Cloudflare Worker + Durable Object 방 서버. 지금은 쓰지 않는다
+- 서버가 없어 열린 방 목록은 없앴다. 회사·학교처럼 막힌 네트워크에서는 연결이 안 될 수 있다
 
 ## 실행과 배포
 
-```bash
-npx wrangler dev --port 8788     # http://localhost:8788
-npx wrangler deploy              # chair-stack.41ways.workers.dev
-```
+GitHub Pages(main 루트)라 푸시하면 반영된다. 로컬은 아무 정적 서버(`python3 -m http.server`)로 연다.
 
-무료 플랜용 설정(SQLite 방식 Durable Object, 저장소는 안 씀). 20분 동안 아무것도 안 한 연결은 서버가 닫는다.
+예전 주소 chair-stack.41ways.workers.dev 에도 같은 화면을 올려 두었다(`npx wrangler deploy`). 같이 하기는 거기서도 P2P라 Durable Object를 쓰지 않는다.
 
 보드게임 Chairs(1999)의 규칙을 참고했다.
