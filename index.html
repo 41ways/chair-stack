@@ -107,7 +107,7 @@ button:focus-visible,input:focus-visible+span{outline:2px solid var(--accent);ou
 .seg .opt input:checked+span{background:var(--accent);color:var(--accent-ink)}
 .segnote{font-size:12.5px;color:var(--ink-soft)}
 
-.odds{display:grid;grid-template-columns:40px 1fr auto auto;gap:4px 12px;align-items:center;font-size:13px}
+.odds{display:grid;grid-template-columns:40px 1fr auto;gap:4px 12px;align-items:center;font-size:13px}
 .odds canvas{width:40px;height:28px}
 .odds .nm b{font-weight:500}
 .odds .nm small{display:block;color:var(--ink-soft);font-size:11.5px}
@@ -170,7 +170,6 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
     <div class="stats">
       <div class="stat"><span class="k">의자</span><span class="v" id="sCount">0</span></div>
       <div class="stat"><span class="k">높이</span><span class="v" id="sHeight">0 cm</span></div>
-      <div class="stat" id="scoreStat"><span class="k">점수</span><span class="v" id="sScore">0</span></div>
       <div class="stat"><span class="k">최고</span><span class="v" id="sBest">–</span></div>
     </div>
     <button class="ghost" id="btnMenu" type="button">처음 화면</button>
@@ -199,7 +198,7 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
           </div>
         </div>
         <div class="sect" id="oddsSect" hidden>
-          <span class="lab">확장판 의자 확률 · 버티면 받는 점수</span>
+          <span class="lab">확장판 의자 확률</span>
           <div class="odds" id="odds"></div>
         </div>
         <div class="sect">
@@ -253,7 +252,7 @@ const { Engine, Bodies, Body, Composite, Events } = Matter;
 
 /* ── 의자 도감 ─────────────────────────────────────────────
    parts: [x, y, 너비, 높이, 각도, 색 키, 모서리]  (y는 아래가 +, 바닥 ≈ 34)
-   p: 확장판 확률(%), pts: 버티면 받는 점수 */
+   p: 확장판 확률(%) */
 const rocking = [
   [2,3.5,50,7,0,'a',2.5], [-25,-2,6,80,-0.16,'a',2.5], [22,18,6,28,0,'a',2.5],
   [22,-6,4.5,20,0,'b',2], [4,-16,42,4.5,0,'b',2], [2,-1,44,5,0,'c',2.4],
@@ -263,24 +262,24 @@ const rocking = [
     rocking.push([R * Math.sin(t), 36 - R * (1 - Math.cos(t)), R * d + 3, 5, -t, 'b', 2.4]); } }
 
 const TYPES = {
-  chair:   { name:'나무 의자', p:28, pts:1, note:'기본 의자', mass:1,
+  chair:   { name:'나무 의자', p:28, note:'기본 의자', mass:1,
     pal:[{a:'#c98a52',b:'#9a6234'},{a:'#de5a3c',b:'#a83c24'},{a:'#4f7a9c',b:'#365a75'},{a:'#e4b44c',b:'#b5872b'},{a:'#7c9b70',b:'#5a7650'},{a:'#ece5d8',b:'#bfb39e'}],
     parts:[[0,3.5,54,7,0,'a',2.5],[23,20.5,6,27,0,'a',2.5],[-24,-1,6,70,0,'a',2.5],[-21,-24,10,20,0,'b',3],[0,25,42,4,0,'b',1.5]] },
-  stool:   { name:'스툴', p:20, pts:2, note:'좁은 상판, 벌어진 다리', mass:.8,
+  stool:   { name:'스툴', p:20, note:'좁은 상판, 벌어진 다리', mass:.8,
     pal:[{a:'#e8b23f',b:'#5b6862'}],
     parts:[[0,4,46,8,0,'a',3.5],[-14,26,5,38,0.13,'b',2],[14,26,5,38,-0.13,'b',2],[0,31,36,3.5,0,'b',1.5]] },
-  rocking: { name:'흔들의자', p:16, pts:3, note:'바닥이 둥글어 잘 굴러요', mass:1.1,
+  rocking: { name:'흔들의자', p:16, note:'바닥이 둥글어 잘 굴러요', mass:1.1,
     pal:[{a:'#8d5c3c',b:'#6a4128',c:'#ead9bb'}], parts:rocking },
-  bench:   { name:'벤치', p:12, pts:1, note:'길고 평평한 받침', mass:1,
+  bench:   { name:'벤치', p:12, note:'길고 평평한 받침', mass:1,
     pal:[{a:'#86a88e',b:'#5e7f67'}],
     parts:[[0,4,116,8,0,'a',3],[-46,24,8,32,0,'b',2.5],[46,24,8,32,0,'b',2.5],[0,29,84,5,0,'b',2]] },
-  armchair:{ name:'1인 소파', p:12, pts:1, note:'묵직하고 낮아요', mass:1,
+  armchair:{ name:'1인 소파', p:12, note:'묵직하고 낮아요', mass:1,
     pal:[{a:'#d8705c',b:'#5a3e2e',c:'#f0a08c'}],
     parts:[[0,16,72,20,0,'a',5],[0,-17,50,30,0,'a',7],[0,-14,40,20,0,'c',6],[-30,0,13,36,0,'a',6],[30,0,13,36,0,'a',6],[0,1,46,10,0,'c',4],[-28,29,6,8,0,'b',2],[28,29,6,8,0,'b',2]] },
-  sofa:    { name:'3인 소파', p:8, pts:2, note:'넓지만 크고 무거워요', mass:1,
+  sofa:    { name:'3인 소파', p:8, note:'넓지만 크고 무거워요', mass:1,
     pal:[{a:'#557aa6',b:'#3a2c22',c:'#80a0cc'}],
     parts:[[0,16,146,20,0,'a',5],[0,-17,118,30,0,'a',7],[-39,-14,36,20,0,'c',6],[0,-14,36,20,0,'c',6],[39,-14,36,20,0,'c',6],[-66,-1,14,36,0,'a',6],[66,-1,14,36,0,'a',6],[-39,1,38,10,0,'c',4],[0,1,38,10,0,'c',4],[39,1,38,10,0,'c',4],[-62,29,6,8,0,'b',2],[62,29,6,8,0,'b',2]] },
-  throne:  { name:'왕좌', p:4, pts:5, note:'드물게 나와요. 높고 무거워요', mass:1.6,
+  throne:  { name:'왕좌', p:4, note:'드물게 나와요. 높고 무거워요', mass:1.6,
     pal:[{a:'#e0b13d',b:'#a6791d',c:'#b33f48'}],
     parts:[[-24,22,9,26,0,'b',3],[24,22,9,26,0,'b',3],[0,-40,52,74,0,'a',8],[0,-38,36,56,0,'c',6],[0,3,62,10,0,'a',4],[0,-1,50,6,0,'c',3],[-33,-9,9,26,0,'a',3],[33,-9,9,26,0,'a',3],[-20,-80,8,10,0,'a',3],[0,-84,9,14,0,'a',3.5],[20,-80,8,10,0,'a',3]] },
 };
@@ -379,7 +378,6 @@ function startGame(){
   $('wres').innerHTML='&nbsp;';
   $('modeChip').textContent = (S.mode==='ext'?'확장판':'기본판') + (S.players===2?' · 둘이서':'');
   $('turnChip').hidden = S.players!==2;
-  $('scoreStat').hidden = S.mode!=='ext';
   updateHud(true); nextChair();
 }
 
@@ -412,7 +410,7 @@ function drop(){
   S.lastDropper=S.turn; S.dropT=performance.now(); S.still=0; S.state='settling';
 }
 function settled(){
-  const b=S.chairs[S.chairs.length-1], pts = S.mode==='ext'?TYPES[b.ctype].pts:1;
+  const b=S.chairs[S.chairs.length-1], pts=1;
   b.settled=true; S.count++; S.score+=pts;
   S.maxH=Math.max(S.maxH,-settledTop()*CM);
   S.fx.push({x:b.position.x,y:b.bounds.min.y-8,text:'+'+pts,t:performance.now(),col: S.players===2&&S.turn===1?T.p2:T.accent});
@@ -439,8 +437,8 @@ function showOver(){
   } else {
     $('oTitle').textContent=pick(['와르르','쿵','아이고','무너졌어요']);
     $('oSub').textContent= S.count===0 ? '첫 의자부터 떨어졌어요. 전시대 한가운데를 노려 보세요.' : `의자 ${S.count}개를 쌓고 무너졌어요.`;
-    const score = S.mode==='ext'?S.score:S.count;
-    big.push(['쌓은 의자',S.count+'개'],['최고 높이',h+' m'],[S.mode==='ext'?'점수':'기록',score]);
+    const score = S.count;
+    big.push(['쌓은 의자',S.count+'개'],['최고 높이',h+' m'],['기록',score+'개']);
     const best=loadBest();
     const better = !best || score>best.score || (score===best.score && S.maxH>best.h);
     if (better && S.count>0){ saveBest({score,h:S.maxH}); $('oBest').textContent='최고 기록을 새로 세웠어요.'; $('oBest').hidden=false; }
@@ -491,7 +489,7 @@ function spinWheel(){
       wheelRot=from+(target-from)*e; drawWheel();
       if(k<1) requestAnimationFrame(tick);
       else { wheelRot=target%TAU; drawWheel(); const d=TYPES[type];
-        $('wres').innerHTML=`${d.name}<small>${d.p}% · 버티면 +${d.pts}</small>`;
+        $('wres').innerHTML=`${d.name}<small>${d.p}%</small>`;
         setTimeout(()=>res(type), spinSkip?120:380); }
     };
     requestAnimationFrame(tick);
@@ -508,10 +506,9 @@ function buildOdds(){
     cv.width=40*dpr; cv.height=28*dpr; const c=cv.getContext('2d'); c.scale(dpr,dpr); drawIcon(c,k,d.pal[0],20,14,26);
     const nm=document.createElement('div'); nm.className='nm'; nm.innerHTML=`<b>${d.name}</b><small>${d.note}</small>`;
     const pc=document.createElement('span'); pc.className='pc'; pc.textContent=d.p+'%';
-    const pt=document.createElement('span'); pt.className='pt'; pt.textContent='+'+d.pts;
     const bar=document.createElement('div'); bar.className='bar'; bar.innerHTML=`<i style="width:${d.p/28*100}%"></i>`;
     const sp=document.createElement('span');
-    el.append(cv,nm,pc,pt,sp,bar);
+    el.append(cv,nm,pc,sp,bar);
   }
 }
 
@@ -532,12 +529,11 @@ let lastHud='';
 function updateHud(force){
   const h=Math.round(S.towerTopCm||0);
   const best=loadBest();
-  const bestTxt = S.players===2?'–':(best? (S.mode==='ext'?best.score+'점':best.score+'개') : '–');
+  const bestTxt = S.players===2?'–':(best? best.score+'개' : '–');
   const key=[S.count,h,S.score,bestTxt,S.turn].join('|');
   if(!force && key===lastHud) return; lastHud=key;
   $('sCount').textContent=S.count;
   $('sHeight').textContent= h>=100 ? (h/100).toFixed(2)+' m' : h+' cm';
-  $('sScore').textContent=S.score;
   $('sBest').textContent=bestTxt;
   const ts=$('turnChip').children; ts[0].classList.toggle('on',S.turn===0); ts[1].classList.toggle('on',S.turn===1);
 }
