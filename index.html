@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gaegu:wght@400;700&family=Gothic+A1:wght@500;700;800&family=Noto+Serif+KR:wght@700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
-<meta name="description" content="전시대 위에 의자를 하나씩 쌓아 올리는 물리 게임. 확장판은 룰렛이 흔들의자·스툴·소파·왕좌 중에서 골라 줘요.">
+<meta name="description" content="전시대 위에 의자를 하나씩 쌓아 올리는 물리 게임. 확장판은 룰렛이 흔들의자·빈백·아기 식탁 의자·왕좌 중에서 골라 줘요.">
 <style>
 /* Layout: 한 화면 게임. 위 기록줄 · 가운데 전시장(캔버스) · 아래 조작줄. 확장판 룰렛은 전시장 오른쪽 위 */
 :root{
@@ -93,6 +93,7 @@ button:focus-visible,input:focus-visible+span{outline:2px solid var(--accent);ou
 .turn span.on{opacity:1}
 .turn .t1{color:var(--accent)} .turn .t2{color:var(--p2)}
 .ghost{background:var(--panel);border:0;border-radius:10px;padding:6px 12px;font-size:13px;cursor:pointer}
+.ver{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft)}
 .ghost:hover{border-color:var(--ink-soft)}
 
 /* 전시장 */
@@ -199,6 +200,7 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
       <div class="stat"><span class="k">최고</span><span class="v" id="sBest">–</span></div>
     </div>
     <button class="ghost" id="btnMenu" type="button">처음 화면</button>
+    <span class="ver">v1.4</span>
   </header>
 
   <main class="stage" id="stage">
@@ -220,7 +222,7 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
           <span class="lab">판 고르기</span>
           <div class="modes">
             <label class="opt"><input type="radio" name="mode" id="modeBasic" value="basic" checked><span><b>기본판</b><em>나무 의자만 나와요. 모양이 같으니 위치와 각도로 승부해요.</em></span></label>
-            <label class="opt"><input type="radio" name="mode" id="modeExt" value="ext"><span><b>확장판</b><em>매번 룰렛이 의자를 골라요. 흔들의자, 스툴, 소파, 드물게 왕좌까지.</em></span></label>
+            <label class="opt"><input type="radio" name="mode" id="modeExt" value="ext"><span><b>확장판</b><em>매번 룰렛이 의자를 골라요. 흔들의자, 빈백, 아기 식탁 의자, 드물게 왕좌까지.</em></span></label>
           </div>
         </div>
         <div class="sect" id="oddsSect" hidden>
@@ -298,45 +300,45 @@ const rocking = [
   for (let i = 0; i < n; i++) { const t = -th + (i + .5) * d;
     rocking.push([R * Math.sin(t), 36 - R * (1 - Math.cos(t)), R * d + 3, 5, -t, 'b', 2.4]); } }
 
+const bean = [{poly:[], k:'a'}, {poly:[], k:'b'}, {poly:[], k:'c'}];
+for (let i=0;i<=12;i++){ const t=Math.PI*i/12; bean[0].poly.push([40*Math.cos(t), 34-46*Math.sin(t)]); }
+for (let i=0;i<10;i++){ const t=Math.PI*2*i/10; bean[1].poly.push([4+17*Math.cos(t), -4+4*Math.sin(t)]); }
+for (let i=0;i<8;i++){ const t=Math.PI*2*i/8; bean[2].poly.push([-20+6*Math.cos(t), 6+3*Math.sin(t)]); }
+
 const TYPES = {
-  chair:   { name:'나무 의자', p:28, note:'기본 의자', mass:1,
+  chair:   { name:'나무 의자', p:32, note:'등받이가 걸려 얹을 자리가 좁아요', mass:1,
     pal:[{a:'#c98a52',b:'#9a6234'},{a:'#de5a3c',b:'#a83c24'},{a:'#4f7a9c',b:'#365a75'},{a:'#e4b44c',b:'#b5872b'},{a:'#7c9b70',b:'#5a7650'},{a:'#ece5d8',b:'#bfb39e'}],
     parts:[[0,3.5,54,7,0,'a',2.5],[23,20.5,6,27,0,'f',2.5],[-24,-1,6,70,0,'f',2.5],[-21,-24,10,20,0,'b',3],[0,25,42,4,0,'g',1.5]] },
-  stool:   { name:'스툴', p:20, note:'좁은 상판, 벌어진 다리', mass:.8,
-    pal:[{a:'#e8b23f',b:'#5b6862'}],
-    parts:[[0,4,46,8,0,'a',3.5],[-14,26,5,38,0.13,'b',2],[14,26,5,38,-0.13,'b',2],[0,31,36,3.5,0,'b',1.5]] },
-  rocking: { name:'흔들의자', p:16, note:'바닥이 둥글어 잘 굴러요', mass:1.1,
+  rocking: { name:'흔들의자', p:26, note:'둥근 바닥이라 계속 출렁여요', mass:1.1,
     pal:[{a:'#8d5c3c',b:'#6a4128',c:'#ead9bb'}], parts:rocking },
-  bench:   { name:'벤치', p:12, note:'길고 평평한 받침', mass:1,
-    pal:[{a:'#86a88e',b:'#5e7f67'}],
-    parts:[[0,4,116,8,0,'a',3],[-46,24,8,32,0,'b',2.5],[46,24,8,32,0,'b',2.5],[0,29,84,5,0,'b',2]] },
-  armchair:{ name:'1인 소파', p:12, note:'묵직하고 낮아요', mass:1,
-    pal:[{a:'#d8705c',b:'#5a3e2e',c:'#f0a08c'}],
-    parts:[[0,16,72,20,0,'a',5],[0,-17,50,30,0,'a',7],[0,-14,40,20,0,'c',6],[-30,0,13,36,0,'a',6],[30,0,13,36,0,'a',6],[0,1,46,10,0,'c',4],[-28,29,6,8,0,'b',2],[28,29,6,8,0,'b',2]] },
-  sofa:    { name:'3인 소파', p:8, note:'넓지만 크고 무거워요', mass:1,
-    pal:[{a:'#557aa6',b:'#3a2c22',c:'#80a0cc'}],
-    parts:[[0,16,146,20,0,'a',5],[0,-17,118,30,0,'a',7],[-39,-14,36,20,0,'c',6],[0,-14,36,20,0,'c',6],[39,-14,36,20,0,'c',6],[-66,-1,14,36,0,'a',6],[66,-1,14,36,0,'a',6],[-39,1,38,10,0,'c',4],[0,1,38,10,0,'c',4],[39,1,38,10,0,'c',4],[-62,29,6,8,0,'b',2],[62,29,6,8,0,'b',2]] },
-  throne:  { name:'왕좌', p:4, note:'드물게 나와요. 높고 무거워요', mass:1.6,
+  beanbag: { name:'빈백', p:22, note:'통통 튀고 둥근 윗면에서 미끄러져요', mass:.7, rest:.55, fric:.6,
+    pal:[{a:'#d9705c',b:'#c45f4c',c:'#ec9a86'}], parts:bean },
+  highchair:{ name:'아기 식탁 의자', p:13, note:'키는 크지만 다리가 가늘어요', mass:.8, fric:.8, air:.08,
+    pal:[{a:'#c98a52',b:'#b07440',c:'#fbfbf8'}],
+    parts:[[-21,-5,5,78,0.17,'a',2],[22,-5,5,78,-0.15,'b',2],[-28,32,16,4,0,'b',1.5,6],[28,32,16,4,0,'b',1.5,6],[0,6,40,4,0,'b',1.5],[2,-46,40,7,0,'a',2.5],[-16,-72,7,52,0,'a',3,.5],[24,-60,38,5,0,'c',2,.5],[18,-53,4,12,0,'b',1.5]] },
+  throne:  { name:'왕좌', p:7, note:'꼭대기가 뾰족해 위에 못 얹어요', mass:1.6,
     pal:[{a:'#e0b13d',b:'#a6791d',c:'#b33f48'}],
-    parts:[[-24,22,9,26,0,'b',3],[24,22,9,26,0,'b',3],[0,-40,52,74,0,'a',8],[0,-38,36,56,0,'c',6],[0,3,62,10,0,'a',4],[0,-1,50,6,0,'c',3],[-33,-9,9,26,0,'a',3],[33,-9,9,26,0,'a',3],[-20,-80,8,10,0,'a',3],[0,-84,9,14,0,'a',3.5],[20,-80,8,10,0,'a',3]] },
+    parts:[[0,21,60,26,0,'b',3],[0,-40,52,74,0,'a',8],[0,-38,36,56,0,'c',6],[0,3,62,10,0,'a',4],[0,-1,50,6,0,'c',3],[-33,-9,9,26,0,'a',3],[33,-9,9,26,0,'a',3],
+      {poly:[[-28,-76],[-12,-76],[-20,-100]],k:'a'},{poly:[[-8,-76],[8,-76],[0,-108]],k:'a'},{poly:[[12,-76],[28,-76],[20,-100]],k:'a'}] },
 };
-const ORDER = ['chair','stool','rocking','bench','armchair','sofa','throne'];
+const ORDER = ['chair','rocking','beanbag','highchair','throne'];
 const SCHOOL = [{a:'#c98b4a',b:'#b77b3f',f:'#7c848b',g:'#697077'},{a:'#d9a066',b:'#c68b50',f:'#7c848b',g:'#697077'},{a:'#b9783f',b:'#a46a35',f:'#5f7f9c',g:'#506d87'}];
 const paint = (pal,k) => pal[k] ?? (k==='g' ? pal.b : pal.a);
 const SKIN_PAL = {
   class:{ chair:SCHOOL },
   sky:{ chair:[{a:'#f07b5a',b:'#cf5d3e'},{a:'#ffd166',b:'#e0b040'},{a:'#8ecae6',b:'#5fa8cc'},{a:'#ffffff',b:'#d5e2ec'}],
-        stool:[{a:'#ffd166',b:'#1d3557'}], bench:[{a:'#f4a261',b:'#d0803f'}], sofa:[{a:'#2a9d8f',b:'#1d3557',c:'#6cc5b8'}] },
+        beanbag:[{a:'#ffd166',b:'#e0b040',c:'#ffe29a'}] },
   mint:{ chair:[{a:'#e5483b',b:'#bf3a2f'},{a:'#f2c14e',b:'#d4a32e'},{a:'#ffffff',b:'#cfe5dc'},{a:'#2c5a51',b:'#173d36'}],
-        stool:[{a:'#ffffff',b:'#173d36'}], sofa:[{a:'#f2c14e',b:'#173d36',c:'#f7d986'}] },
+        beanbag:[{a:'#f2c14e',b:'#d4a32e',c:'#f7d986'}] },
   dark:{ chair:[{a:'#e09f5a',b:'#a8703a'},{a:'#d27b7e',b:'#a95a5d'},{a:'#ead6b2',b:'#bda784'},{a:'#8fae98',b:'#6a8a74'}],
-        stool:[{a:'#ead6b2',b:'#8e7a5a'}], sofa:[{a:'#b5565a',b:'#241c18',c:'#d27b7e'}] },
+        beanbag:[{a:'#b5565a',b:'#9b4649',c:'#d27b7e'}] },
 };
 function palettesFor(type){ const m=SKIN_PAL[S.skin]; return (m&&m[type]) || TYPES[type].pal; }
 for (const k of ORDER) { // 아이콘용 외곽
   let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
-  for (const [x,y,w,h,a] of TYPES[k].parts) {
-    const c=Math.cos(a), s=Math.sin(a);
+  for (const pt of TYPES[k].parts) {
+    if (pt.poly){ for (const [px,py] of pt.poly){ x0=Math.min(x0,px); x1=Math.max(x1,px); y0=Math.min(y0,py); y1=Math.max(y1,py); } continue; }
+    const [x,y,w,h,a]=pt, c=Math.cos(a), s=Math.sin(a);
     for (const [dx,dy] of [[-w/2,-h/2],[w/2,-h/2],[w/2,h/2],[-w/2,h/2]]) {
       const px=x+dx*c-dy*s, py=y+dx*s+dy*c; x0=Math.min(x0,px); x1=Math.max(x1,px); y0=Math.min(y0,py); y1=Math.max(y1,py);
     }
@@ -358,7 +360,9 @@ function rr(c,x,y,w,h,r){ r=Math.min(r,w/2,h/2); if(c.roundRect){c.roundRect(x,y
 function drawIcon(c,type,pal,cx,cy,size){
   const d=TYPES[type], bb=d.bb, sc=size/Math.max(bb.w,bb.h);
   c.save(); c.translate(cx,cy); c.scale(sc,sc); c.translate(-(bb.x0+bb.x1)/2,-(bb.y0+bb.y1)/2);
-  for (const [x,y,w,h,a,k,r] of d.parts){ c.save(); c.translate(x,y); c.rotate(a); c.beginPath(); rr(c,-w/2,-h/2,w,h,r); c.fillStyle=paint(pal,k); c.fill(); c.restore(); }
+  for (const pt of d.parts){
+    if (pt.poly){ c.beginPath(); pt.poly.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y)); c.closePath(); c.fillStyle=paint(pal,pt.k); c.fill(); continue; }
+    const [x,y,w,h,a,k,r]=pt; c.save(); c.translate(x,y); c.rotate(a); c.beginPath(); rr(c,-w/2,-h/2,w,h,r); c.fillStyle=paint(pal,k); c.fill(); c.restore(); }
   c.restore();
 }
 
@@ -383,11 +387,17 @@ Events.on(engine,'afterUpdate',()=>{ // 너무 빨리 떨어져 얇은 다리를
 
 function makeChair(type,pal,flip){
   const d=TYPES[type];
-  const parts=d.parts.map(([x,y,w,h,a,k,r])=>{
-    const b=Bodies.rectangle(x*flip,y,w,h,{angle:a*flip,chamfer:{radius:r}});
+  const parts=d.parts.map(pt=>{
+    let b, k;
+    if (pt.poly){ k=pt.k; const vs=pt.poly.map(([x,y])=>({x:x*flip,y}));
+      const c=Matter.Vertices.centre(vs); b=Bodies.fromVertices(c.x,c.y,[vs]); }
+    else { const [x,y,w,h,a,kk,r,dn]=pt; k=kk; b=Bodies.rectangle(x*flip,y,w,h,{angle:a*flip,chamfer:{radius:r}}); if (dn) Body.setDensity(b,.001*dn); }
     b.paint=paint(pal,k); b.edge=shade(b.paint,.7); return b;
   });
-  const body=Body.create({parts,friction:.9,frictionStatic:1.2,restitution:0,frictionAir:.02,slop:.03});
+  const body=Body.create({parts,friction:d.fric??.9,frictionStatic:1.2,restitution:d.rest??0,frictionAir:d.air??.02,slop:.03});
+  // Matter는 여러 부품 물체의 관성을 부품 자체 관성의 합으로만 잡아서 너무 잘 돈다. 평행축 정리로 다시 계산
+  let I=0, M=0; for (const pt of parts){ const dx=pt.position.x-body.position.x, dy=pt.position.y-body.position.y; I+=pt.inertia+pt.mass*(dx*dx+dy*dy); M+=pt.mass; }
+  Body.setInertia(body, I*(body.mass/M));
   if (d.mass!==1) Body.setMass(body, body.mass*d.mass);
   body.ctype=type; body.pal=pal; body.flip=flip;
   return body;
@@ -408,11 +418,9 @@ function clearChairs(){ for (const b of S.chairs) Composite.remove(world,b); S.c
 function placeOn(b,x,bottom){ Body.setPosition(b,{x,y:0}); Body.setPosition(b,{x,y:bottom-(b.bounds.max.y)}); }
 function demo(){ // 처음 화면 뒤에 세워 둘 작은 탑
   clearChairs();
-  const so=makeChair('sofa',TYPES.sofa.pal[0],1); placeOn(so,0,-0.5);
-  const be=makeChair('bench',TYPES.bench.pal[0],1); placeOn(be,0,so.bounds.min.y-0.5);
-  const st=makeChair('stool',TYPES.stool.pal[0],1); placeOn(st,-12,be.bounds.min.y-0.5);
-  const ch=makeChair('chair',palettesFor('chair')[0],1); placeOn(ch,26,be.bounds.min.y-0.5);
-  for (const b of [so,be,st,ch]){ Composite.add(world,b); S.chairs.push(b); }
+  const ch=makeChair('chair',palettesFor('chair')[0],1); placeOn(ch,-42,-0.5);
+  const bb=makeChair('beanbag',palettesFor('beanbag')[0],1); placeOn(bb,44,-0.5);
+  for (const b of [ch,bb]){ Composite.add(world,b); S.chairs.push(b); }
   S.held=null;
 }
 
@@ -555,7 +563,7 @@ function buildOdds(){
     cv.width=40*dpr; cv.height=28*dpr; const c=cv.getContext('2d'); c.scale(dpr,dpr); drawIcon(c,k,palettesFor(k)[0],20,14,26);
     const nm=document.createElement('div'); nm.className='nm'; nm.innerHTML=`<b>${d.name}</b><small>${d.note}</small>`;
     const pc=document.createElement('span'); pc.className='pc'; pc.textContent=d.p+'%';
-    const bar=document.createElement('div'); bar.className='bar'; bar.innerHTML=`<i style="width:${d.p/28*100}%"></i>`;
+    const bar=document.createElement('div'); bar.className='bar'; bar.innerHTML=`<i style="width:${d.p/Math.max(...ORDER.map(q=>TYPES[q].p))*100}%"></i>`;
     const sp=document.createElement('span');
     el.append(cv,nm,pc,sp,bar);
   }
