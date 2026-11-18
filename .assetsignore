@@ -1,0 +1,12 @@
+.git
+.wrangler
+node_modules
+worker.js
+room.js
+wrangler.toml
+package.json
+package-lock.json
+README.md
+test
+.assetsignore
+.gitignore
