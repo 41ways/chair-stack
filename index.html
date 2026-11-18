@@ -275,7 +275,7 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
     </div>
     <button class="ghost themebtn" id="btnTheme" type="button" aria-haspopup="true" aria-expanded="false"><span class="dot" id="themeDot"></span><span id="themeName">쇼룸</span></button>
     <button class="ghost" id="btnMenu" type="button" hidden>그만하기</button>
-    <span class="ver">v2.0</span>
+    <span class="ver">v2.1</span>
     <div class="themepop" id="themePop" role="menu" hidden></div>
   </header>
 
@@ -293,12 +293,12 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
     <div class="overlay home" id="home">
       <div class="hero">
         <h1>의자 쌓기</h1>
-        <p>의자를 하나씩 올려 탑을 쌓아요. 하나라도 바닥에 떨어지면 끝.<br>높이 쌓을수록 탑이 조금씩 흔들려요.</p>
+        <p>의자를 하나씩 올려 탑을 쌓아요. 하나라도 바닥에 떨어지면 끝.<br>위에 얹힌 무게의 중심이 받침에서 벗어날수록 탑이 기울어요.</p>
         <div class="acts">
           <button class="bigbtn main" id="goSolo" type="button"><b>혼자 하기</b><small>최고 기록 · 한 화면 둘이서</small></button>
           <button class="bigbtn" id="goMulti" type="button"><b>같이 하기</b><small>방을 만들어 최대 6명</small></button>
         </div>
-        <div class="foot"><span>v2.0</span><a href="https://41ways.github.io/norara/" target="_blank" rel="noopener">41ways의 레드버튼</a></div>
+        <div class="foot"><span>v2.1</span><a href="https://41ways.github.io/norara/" target="_blank" rel="noopener">41ways의 레드버튼</a></div>
       </div>
     </div>
 
@@ -327,8 +327,8 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
           <span class="segnote" id="plNote">최고 기록에 도전해요.</span>
         </div>
         <p class="keys">
-          마우스 · 움직여서 위치, 휠로 회전, 클릭으로 놓기<br>
-          키보드 · <kbd>←</kbd><kbd>→</kbd> 이동 <kbd>Q</kbd><kbd>E</kbd> 회전 <kbd>F</kbd> 뒤집기 <kbd>Space</kbd> 놓기<br>
+          마우스 · 움직여서 위치, 휠로 조금씩 회전, 클릭으로 놓기<br>
+          키보드 · <kbd>←</kbd><kbd>→</kbd> 이동 <kbd>Q</kbd><kbd>E</kbd> 누르는 동안 회전 <kbd>F</kbd> 뒤집기 <kbd>Space</kbd> 놓기<br>
           터치 · 끌어서 위치, 탭하면 놓기
         </p>
         <button class="primary" id="btnStart" type="button">시작하기</button>
@@ -422,8 +422,8 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
     <button type="button" data-hold="-1" aria-label="왼쪽으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button type="button" data-hold="1" aria-label="오른쪽으로"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
     <span class="sep"></span>
-    <button type="button" data-rot="-1" aria-label="왼쪽으로 15도 회전"><svg viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M5.5 15a8 8 0 1 0 1.9-8.3L4 10"/></svg><span class="lbl">15°</span></button>
-    <button type="button" data-rot="1" aria-label="오른쪽으로 15도 회전"><svg viewBox="0 0 24 24"><path d="M20 4v6h-6"/><path d="M18.5 15a8 8 0 1 1-1.9-8.3L20 10"/></svg><span class="lbl">15°</span></button>
+    <button type="button" data-rot="-1" aria-label="왼쪽으로 돌리기, 누르고 있으면 계속"><svg viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M5.5 15a8 8 0 1 0 1.9-8.3L4 10"/></svg></button>
+    <button type="button" data-rot="1" aria-label="오른쪽으로 돌리기, 누르고 있으면 계속"><svg viewBox="0 0 24 24"><path d="M20 4v6h-6"/><path d="M18.5 15a8 8 0 1 1-1.9-8.3L20 10"/></svg></button>
     <button type="button" id="bFlip" aria-label="좌우 뒤집기"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M8 7L3 12l5 5z"/><path d="M16 7l5 5-5 5z"/></svg><span class="lbl">뒤집기</span></button>
     <span class="sep"></span>
     <button type="button" class="drop" id="bDrop">놓기</button>
@@ -434,8 +434,8 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <script>
 (() => {
-const { Engine, Bodies, Body, Composite, Events, Sleeping } = Matter;
-const VERSION = '2.0';
+const { Engine, Bodies, Body, Composite, Events } = Matter;
+const VERSION = '2.1';
 
 /* ── 의자 도감 ─────────────────────────────────────────────
    parts: [x, y, 너비, 높이, 각도, 색 키, 모서리, 무게 배율]  (y는 아래가 +, 바닥 ≈ 34)
@@ -456,7 +456,7 @@ for (let i=0;i<8;i++){ const t=Math.PI*2*i/8; bean[2].poly.push([-20+6*Math.cos(
 const TYPES = {
   chair:   { name:'나무 의자', p:32, note:'등받이가 걸려 얹을 자리가 좁아요', mass:1,
     pal:[{a:'#c98a52',b:'#9a6234'},{a:'#de5a3c',b:'#a83c24'},{a:'#4f7a9c',b:'#365a75'},{a:'#e4b44c',b:'#b5872b'},{a:'#7c9b70',b:'#5a7650'},{a:'#ece5d8',b:'#bfb39e'}],
-    parts:[[0,3.5,54,7,0,'a',2.5],[23,20.5,6,27,0,'f',2.5],[-24,-1,6,70,0,'f',2.5],[-21,-24,10,20,0,'b',3],[0,25,42,4,0,'g',1.5]] },
+    parts:[[0,2,54,6,0,'a',2.5],[24,19.5,5,29,0,'f',2],[-24,-6,5,80,0,'f',2],[-19,-43,15,5,0,'b',2],[-21,-24,8,4,0,'b',1.5],[0,10,44,3,0,'g',1.2]] },
   rocking: { name:'흔들의자', p:26, note:'둥근 바닥이라 계속 출렁여요', mass:1.1,
     pal:[{a:'#8d5c3c',b:'#6a4128',c:'#ead9bb'}], parts:rocking },
   beanbag: { name:'빈백', p:22, note:'통통 튀고 둥근 윗면에서 미끄러져요', mass:.7, rest:.55, fric:.6,
@@ -504,8 +504,11 @@ for (const k of ORDER) { // 아이콘용 외곽
 
 const CM = 1.25;          // 1 단위 ≈ 1.25cm (나무 의자 높이 ≈ 88cm)
 const PLINTH_W = 200, FLOOR_Y = 170, FALL_Y = 100;
-// 높이 흔들림: 의자 밑면이 SWAY_FROM(cm)보다 높으면, 그 높이(m)의 제곱에 비례해 좌우로 천천히 흔든다
-const SWAY_FROM = 120, SWAY_K = 0.012, SWAY_SEC = 2.6;
+// 무게중심: 의자마다 "자기 + 그 위에 얹힌 모든 의자"의 무게중심이 받침(닿은 점들의 폭) 가운데서 얼마나 벗어났나(ratio, 가장자리 = 1).
+// 단단한 물체라면 1을 넘어야 넘어가지만, 실제 가구는 이음새가 휘어서 위에 실린 무게가 높을수록 버티는 폭이 좁아진다.
+// 버티는 폭 = max(BAL_MIN, 1 - H/BAL_H). 그 안에서는 아무 힘도 주지 않고(멈춘 탑은 그대로), 넘으면 그쪽으로 넘어가게 기울인다
+const BAL_K = 0.5, BAL_MIN = 0.2, BAL_H = 400;
+const balLimit = H => Math.max(BAL_MIN, 1 - H/BAL_H);
 
 /* ── 색 도우미 ── */
 const hx = h => { h=h.trim().replace('#',''); if(h.length===3||h.length===4) h=[...h].map(c=>c+c).join(''); return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)); };
@@ -537,22 +540,56 @@ function readTheme(){
 }
 
 /* ── 물리 ── */
-const engine = Engine.create({ enableSleeping:true, positionIterations:12, velocityIterations:10 });
+// 잠재우기(멈춘 의자를 굳히기)는 쓰지 않는다. 아래층도 끝까지 무게를 받는다
+const engine = Engine.create({ enableSleeping:false, positionIterations:12, velocityIterations:10 });
 const world = engine.world;
 const plinth = Bodies.rectangle(0, FLOOR_Y/2, PLINTH_W, FLOOR_Y, { isStatic:true, friction:1, chamfer:{radius:3} });
 const floor = Bodies.rectangle(0, FLOOR_Y+40, 6000, 80, { isStatic:true, friction:1 });
 Composite.add(world,[plinth,floor]);
-let simT = 0;
-Events.on(engine,'beforeUpdate',()=>{
-  simT += 1/60;
-  const ph = Math.sin(simT*2*Math.PI/SWAY_SEC);
-  for (const b of S.chairs){
-    const h = (-b.bounds.max.y*CM - SWAY_FROM)/100;
-    if (h<=0) continue;
-    if (b.isSleeping) Sleeping.set(b,false);
-    Body.applyForce(b, b.position, { x: b.mass*0.001*SWAY_K*h*h*ph, y:0 });
+/* 무게중심 계산. 접촉 정보로 "누가 누구 위에 얹혀 있나"를 잇고, 의자마다 위에 실린 무게의 중심을 구한다 */
+function balance(apply){
+  const on=new Map();                                // 위 의자 → { 닿은 점들, 아래 물체들 }
+  for (const pair of engine.pairs.list){
+    if (!pair.isActive) continue;
+    const A=pair.bodyA.parent, B=pair.bodyB.parent;
+    if (!A.ctype && !B.ctype) continue;
+    const pts = pair.activeContacts ? pair.activeContacts.map(c=>c.vertex) : (pair.collision.supports||[]).filter(Boolean);
+    if (!pts.length) continue;
+    let up=A, dn=B; if (A.position.y>B.position.y || !A.ctype){ up=B; dn=A; }
+    if (!up.ctype || up.position.y>=FALL_Y) continue;
+    const e=on.get(up)||{xs:[],ys:[],dn:new Set()};
+    for (const p of pts){ e.xs.push(p.x); e.ys.push(p.y); }
+    e.dn.add(dn); on.set(up,e);
   }
-});
+  const holds=new Map();                             // 아래 의자 → 바로 위에 얹힌 의자들
+  for (const [up,e] of on) for (const d of e.dn) if (d.ctype){ if(!holds.has(d)) holds.set(d,new Set()); holds.get(d).add(up); }
+  let worst=0, all={m:0,mx:0,my:0};
+  for (const [c,e] of on){
+    const load=new Set([c]), st=[c];
+    while (st.length){ const x=st.pop(); for (const u of holds.get(x)||[]) if(!load.has(u)){ load.add(u); st.push(u); } }
+    let m=0,mx=0,my=0; for (const b of load){ m+=b.mass; mx+=b.mass*b.position.x; my+=b.mass*b.position.y; }
+    const cx=mx/m, cy=my/m;
+    const x0=Math.min(...e.xs), x1=Math.max(...e.xs), base=Math.max(...e.ys);
+    const half=Math.max(3,(x1-x0)/2), ratio=(cx-(x0+x1)/2)/half, H=Math.max(0,base-cy);
+    if (e.dn.has(plinth)){ all.m+=m; all.mx+=mx; all.my+=my; }
+    const lim=balLimit(H);
+    worst=Math.max(worst, Math.abs(ratio)/lim);
+    // 넘어가야 할 만큼 치우쳤는데 1초 넘게 그대로면 어딘가에 걸려 버티는 것. 치우침이 달라질 때까지 힘을 멈춘다
+    if (apply){ const still=c.angularSpeed<0.002 && c.speed<0.05;
+      if (Math.abs(ratio)>lim && still) c.braced=(c.braced||0)+1; else if (!still) c.braced=0;
+      if (c.braced>60 && Math.abs(ratio-(c.braceRatio??ratio))>0.08) c.braced=0;
+      if (c.braced===60) c.braceRatio=ratio; }
+    if (apply && Math.abs(ratio)>lim && !(c.braced>60)){
+      const k=(Math.abs(ratio)-lim+0.1)*Math.sign(ratio);
+      // 미는 힘이 아니라 기울이는 힘만: 무게중심 높이에서 바깥으로, 받침에서 같은 크기로 안쪽으로 → 미끄러지지 않고 기운다
+      const F=m*0.001*BAL_K*k, mid=(x0+x1)/2;
+      Body.applyForce(c, {x:c.position.x, y:cy}, {x:F, y:0});
+      Body.applyForce(c, {x:mid, y:base}, {x:-F, y:0});
+    }
+  }
+  S.bal = all.m ? { x:all.mx/all.m, y:all.my/all.m, worst } : null;
+}
+Events.on(engine,'beforeUpdate',()=>balance(true));
 Events.on(engine,'afterUpdate',()=>{ // 너무 빨리 떨어져 얇은 다리를 뚫지 않게
   for (const b of S.chairs){ if (b.speed>7){ const k=7/b.speed; Body.setVelocity(b,{x:b.velocity.x*k,y:b.velocity.y*k}); } }
 });
@@ -636,7 +673,8 @@ function nextChair(){
   } else holdChair('chair', Math.floor(Math.random()*12));
 }
 function holdChair(type,palIdx){
-  S.heldType=type; S.heldPal=palIdx; S.angle=0; S.flip=type==='chair'?1:(Math.random()<.5?1:-1);
+  // 처음 각도는 아무렇게나. 똑바로 세우는 것부터가 일이다
+  S.heldType=type; S.heldPal=palIdx; S.angle=Math.random()*Math.PI*2; S.flip=Math.random()<.5?1:-1;
   S.held=makeChair(type,palAt(type,palIdx),S.flip,palIdx); S.state='aim'; posHeld();
 }
 function rebuildHeld(){ if(!S.held) return; S.held=makeChair(S.heldType,palAt(S.heldType,S.heldPal),S.flip,S.heldPal); posHeld(); }
@@ -648,14 +686,12 @@ function posHeld(){
   const target=S.towerTop-60; Body.setPosition(b,{x:S.heldX,y:b.position.y+(target-b.bounds.max.y)});
 }
 const canAct = () => S.state==='aim' && (!S.multi || NET.myTurn);
-function rotate(dir){ if(!canAct()) return; S.angle+=dir*Math.PI/12; posHeld(); }
+function rotate(rad){ if(!canAct()) return; S.angle+=rad; posHeld(); }   // 각도는 단위 없이 자유롭게
 function flip(){ if(!canAct()) return; S.flip*=-1; rebuildHeld(); }
 function drop(){
   if (!canAct()||!S.held) return;
   posHeld();
   const b=S.held; S.held=null;
-  // 손 떨림: 아주 조금 비틀어 놓는다. 똑같은 자리 똑같은 각도로 영원히 쌓는 걸 막는다
-  Body.setAngle(b, b.angle+(Math.random()-.5)*0.03); Body.translate(b,{x:(Math.random()-.5)*2.4,y:0});
   Body.setVelocity(b,{x:0,y:0}); Body.setAngularVelocity(b,0);
   Composite.add(world,b); S.chairs.push(b);
   S.lastDropper=S.turn; S.dropT=performance.now(); S.still=0; S.state='settling';
@@ -808,7 +844,7 @@ function onRoom(v){
     NET.myTurn=false; S.held=null; $('banner').hidden=true;
     if (prev && prev.phase==='play'){
       // 무너지는 모습은 각자 화면에서 마저 굴린다
-      S.state='falling'; for (const b of S.chairs){ b.target=null; Sleeping.set(b,false); }
+      S.state='falling'; for (const b of S.chairs) b.target=null;
       const g=S.gen; setTimeout(()=>{ if (g===S.gen && NET.room && NET.room.phase==='over') showNetOver(NET.room); }, 1500);
     } else showNetOver(v);
   }
@@ -821,7 +857,7 @@ function loadSnapshot(list){
     if (!TYPES[c.k]) continue;
     const b=makeChair(c.k,palAt(c.k,c.p),c.f,c.p);
     Body.setAngle(b,c.a); Body.setPosition(b,{x:c.x,y:c.y}); b.settled=true;
-    Composite.add(world,b); S.chairs.push(b); Sleeping.set(b,true);
+    Composite.add(world,b); S.chairs.push(b);
   }
 }
 function snapshot(){ return S.chairs.map(b=>({k:b.ctype,p:b.palIdx,f:b.flip,x:+b.position.x.toFixed(2),y:+b.position.y.toFixed(2),a:+b.angle.toFixed(4)})); }
@@ -1086,6 +1122,17 @@ function render(now){
 
   for (const b of S.chairs) drawBody(b,1);
 
+  // 무게중심: 탑 전체의 중심에서 받침까지 추를 내린다. 가장 위태로운 층에 따라 색이 바뀐다
+  if (S.bal && S.state!=='home' && S.chairs.length){
+    const {x,y,worst}=S.bal, col= worst<0.6 ? T.soft : worst<0.9 ? '#e0a030' : T.accent;
+    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=1.5/s; ctx.globalAlpha=.85;
+    ctx.setLineDash([2/s,4/s]); ctx.beginPath(); ctx.moveTo(x,y+7/s); ctx.lineTo(x,0); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(x,y,6/s,0,7); ctx.fillStyle=T.panel; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-6/s,y); ctx.lineTo(x+6/s,y); ctx.moveTo(x,y-6/s); ctx.lineTo(x,y+6/s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x-5/s,0); ctx.lineTo(x+5/s,0); ctx.lineWidth=3/s; ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+
   if (S.held && (S.state==='aim'||S.state==='watching')){
     const b=S.held, cx=b.position.x, by=b.bounds.max.y;
     const col = S.multi ? (NET.myTurn?T.accent:T.soft) : (S.players===2&&S.turn===1?T.p2:T.accent);
@@ -1130,11 +1177,14 @@ function landingY(x){
 }
 
 /* ── 루프 ── */
-const keys=new Set(); let holdDir=0, acc=0, lastT=performance.now(), bannerT=0;
+const keys=new Set(); let holdDir=0, rotDir=0, rotSince=0, acc=0, lastT=performance.now(), bannerT=0;
 function frame(now){
   const dt=Math.min(50,now-lastT); lastT=now;
   let mv=holdDir; if(keys.has('ArrowLeft')||keys.has('a')) mv-=1; if(keys.has('ArrowRight')||keys.has('d')) mv+=1;
   if (mv && canAct()){ S.heldX+=mv*dt*0.22; }
+  // 회전: 누르고 있는 동안 계속 돈다. 처음 0.4초는 천천히(초당 35°), 그 뒤로는 빠르게(초당 120°)
+  let rv=rotDir; if(keys.has('q')||keys.has('ArrowUp')) rv-=1; if(keys.has('e')||keys.has('ArrowDown')) rv+=1;
+  if (rv){ if(!rotSince) rotSince=now; const sp=(now-rotSince<400?35:120)*Math.PI/180; rotate(rv*sp*dt/1000); } else rotSince=0;
 
   // 물리는 혼자일 때, 같이 할 때는 내 차례이거나 판이 끝나 무너지는 중일 때만 돌린다. 나머지는 받은 위치를 따라간다
   const sim = !S.multi || NET.myTurn || S.state==='falling' || S.state==='over';
@@ -1143,7 +1193,7 @@ function frame(now){
     while(acc>=1000/60 && steps<3){ Engine.update(engine,1000/60); acc-=1000/60; steps++; }
     if (steps===3) acc=0;
   } else {
-    acc=0;
+    acc=0; balance(false);
     const k=Math.min(1,dt*0.02);
     for (const b of S.chairs){ const t=b.target; if(!t) continue;
       Body.setPosition(b,{x:b.position.x+(t[0]-b.position.x)*k, y:b.position.y+(t[1]-b.position.y)*k});
@@ -1157,7 +1207,7 @@ function frame(now){
   if (playing && S.chairs.some(b=>b.position.y>FALL_Y)) lose();
   if (S.state==='settling'){
     const el=now-S.dropT;
-    const calm=S.chairs.every(b=>b.isSleeping||(b.speed<.18&&b.angularSpeed<.01));
+    const calm=S.chairs.every(b=>b.position.y>FALL_Y||(b.speed<.18&&b.angularSpeed<.01));
     S.still = calm&&el>450 ? S.still+1 : 0;
     if (S.still>18 || el>7000) settled();
   }
@@ -1167,7 +1217,7 @@ function frame(now){
       const key=`${S.heldX.toFixed(1)}|${S.angle.toFixed(3)}|${S.flip}`;
       if (key!==NET.aimKey && now-NET.lastAim>70){ NET.aimKey=key; NET.lastAim=now; sendNet({t:'aim',x:S.heldX,a:S.angle,f:S.flip}); }
     }
-    const moving = S.state==='settling' || S.chairs.some(b=>!b.isSleeping);
+    const moving = S.state==='settling' || S.chairs.some(b=>b.speed>.05||b.angularSpeed>.002);
     if (moving && (S.state==='settling'||S.state==='aim'||S.state==='spin') && now-NET.lastFr>70){ NET.lastFr=now; sendNet({t:'fr',b:frameData()}); }
   }
   if (S.multi && NET.room && NET.room.phase==='play' && now-bannerT>500){ bannerT=now; turnBanner(); }
@@ -1199,7 +1249,7 @@ cv.addEventListener('pointerup',e=>{
   touch=null;
 });
 cv.addEventListener('pointercancel',()=>{ touch=null; });
-cv.addEventListener('wheel',e=>{ e.preventDefault(); const t=performance.now(); if(t-wheelLock<90) return; wheelLock=t; rotate(e.deltaY>0?1:-1); },{passive:false});
+cv.addEventListener('wheel',e=>{ e.preventDefault(); const d=Math.max(-60,Math.min(60,e.deltaY)); rotate(d*0.0013); },{passive:false});   // 휠 한 칸 ≈ 4°, 트랙패드는 더 잘게
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 
 addEventListener('keydown',e=>{
@@ -1210,20 +1260,23 @@ addEventListener('keydown',e=>{
   if (S.state==='menu'){ if(k==='Enter'){ e.preventDefault(); startGame(); } return; }
   if (S.state==='over' && !S.multi){ if(k==='Enter'||k==='r'){ e.preventDefault(); startGame(); } return; }
   if (['ArrowLeft','ArrowRight','a','d'].includes(k)){ keys.add(k); e.preventDefault(); }
-  else if (k==='q'||k==='ArrowUp'){ rotate(-1); e.preventDefault(); }
-  else if (k==='e'||k==='ArrowDown'){ rotate(1); e.preventDefault(); }
+  else if (['q','e','ArrowUp','ArrowDown'].includes(k)){ keys.add(k); e.preventDefault(); }
   else if (k==='f'){ flip(); }
   else if (k===' '||k==='Enter'||k==='s'){ e.preventDefault(); if(S.state==='spin') spinSkip=true; else drop(); }
 });
 addEventListener('keyup',e=>{ keys.delete(e.key.length===1?e.key.toLowerCase():e.key); });
-addEventListener('blur',()=>{ keys.clear(); holdDir=0; });
+addEventListener('blur',()=>{ keys.clear(); holdDir=0; rotDir=0; });
 
 document.querySelectorAll('[data-hold]').forEach(b=>{
   const d=+b.dataset.hold;
   b.addEventListener('pointerdown',e=>{ e.preventDefault(); holdDir=d; b.setPointerCapture(e.pointerId); });
   for (const ev of ['pointerup','pointercancel','lostpointercapture']) b.addEventListener(ev,()=>{ if(holdDir===d) holdDir=0; });
 });
-document.querySelectorAll('[data-rot]').forEach(b=>b.addEventListener('click',()=>rotate(+b.dataset.rot)));
+document.querySelectorAll('[data-rot]').forEach(b=>{
+  const d=+b.dataset.rot;
+  b.addEventListener('pointerdown',e=>{ e.preventDefault(); rotDir=d; b.setPointerCapture(e.pointerId); });
+  for (const ev of ['pointerup','pointercancel','lostpointercapture']) b.addEventListener(ev,()=>{ if(rotDir===d) rotDir=0; });
+});
 $('bFlip').addEventListener('click',flip);
 $('bDrop').addEventListener('click',()=>{ if(S.state==='spin') spinSkip=true; else drop(); });
 
