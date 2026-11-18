@@ -451,10 +451,10 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
   </footer>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/planck@1.4.3/dist/planck.min.js"></script>
 <script>
 (() => {
-const { Engine, Bodies, Body, Composite, Events } = Matter;
+const { World, Vec2, Box, Polygon } = planck;
 
 /* ── 의자 도감 ─────────────────────────────────────────────
    parts: [x, y, 너비, 높이, 각도, 색 키, 모서리, 무게 배율]  (y는 아래가 +, 바닥 ≈ 34)
@@ -468,7 +468,8 @@ const rocking = [
     rocking.push([R * Math.sin(t), 36 - R * (1 - Math.cos(t)), R * d + 3, 5, -t, 'b', 2.4]); } }
 
 const bean = [{poly:[], k:'a'}, {poly:[], k:'b'}, {poly:[], k:'c'}];
-for (let i=0;i<=12;i++){ const t=Math.PI*i/12; bean[0].poly.push([40*Math.cos(t), 34-46*Math.sin(t)]); }
+for (let i=0;i<=11;i++){ const t=Math.PI*i/11; bean[0].poly.push([40*Math.cos(t), 34-46*Math.sin(t)]); }
+bean[1].deco=bean[2].deco=true;
 for (let i=0;i<10;i++){ const t=Math.PI*2*i/10; bean[1].poly.push([4+17*Math.cos(t), -4+4*Math.sin(t)]); }
 for (let i=0;i<8;i++){ const t=Math.PI*2*i/8; bean[2].poly.push([-20+6*Math.cos(t), 6+3*Math.sin(t)]); }
 
@@ -523,11 +524,6 @@ for (const k of ORDER) { // 아이콘용 외곽
 
 const CM = 1.25;          // 1 단위 ≈ 1.25cm (나무 의자 높이 ≈ 88cm)
 const PLINTH_W = 200, FLOOR_Y = 170, FALL_Y = 100;
-// 무게중심: 의자마다 "자기 + 그 위에 얹힌 모든 의자"의 무게중심이 받침(닿은 점들의 폭) 가운데서 얼마나 벗어났나(ratio, 가장자리 = 1).
-// 단단한 물체라면 1을 넘어야 넘어가지만, 실제 가구는 이음새가 휘어서 위에 실린 무게가 높을수록 버티는 폭이 좁아진다.
-// 버티는 폭 = max(BAL_MIN, 1 - H/BAL_H). 그 안에서는 아무 힘도 주지 않고(멈춘 탑은 그대로), 넘으면 그쪽으로 넘어가게 기울인다
-const BAL_K = 0.5, BAL_MIN = 0.2, BAL_H = 400;
-const balLimit = H => Math.max(BAL_MIN, 1 - H/BAL_H);
 
 /* ── 색 도우미 ── */
 const hx = h => { h=h.trim().replace('#',''); if(h.length===3||h.length===4) h=[...h].map(c=>c+c).join(''); return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)); };
@@ -558,86 +554,78 @@ function readTheme(){
   drawWheel(); buildOdds();
 }
 
-/* ── 물리 ── */
-// 잠재우기(멈춘 의자를 굳히기)는 쓰지 않는다. 아래층도 끝까지 무게를 받는다
-const engine = Engine.create({ enableSleeping:false, positionIterations:12, velocityIterations:10 });
-const world = engine.world;
-const plinth = Bodies.rectangle(0, FLOOR_Y/2, PLINTH_W, FLOOR_Y, { isStatic:true, friction:1, chamfer:{radius:3} });
-const floor = Bodies.rectangle(0, FLOOR_Y+40, 6000, 80, { isStatic:true, friction:1 });
-Composite.add(world,[plinth,floor]);
-/* 무게중심 계산. 접촉 정보로 "누가 누구 위에 얹혀 있나"를 잇고, 의자마다 위에 실린 무게의 중심을 구한다 */
-let balStep=0;
-function balance(apply){
-  if (apply) balStep++;
-  const on=new Map();                                // 위 의자 → { 닿은 점들, 아래 물체들 }
-  for (const pair of engine.pairs.list){
-    if (!pair.isActive) continue;
-    const A=pair.bodyA.parent, B=pair.bodyB.parent;
-    if (!A.ctype && !B.ctype) continue;
-    const pts = pair.activeContacts ? pair.activeContacts.map(c=>c.vertex) : (pair.collision.supports||[]).filter(Boolean);
-    if (!pts.length) continue;
-    // 받침은 위아래로 닿은 것만. 옆으로 끼워져 닿은 건 기대는 것이지 받치는 게 아니다
-    const n=pair.collision.normal; if (Math.abs(n.y)<0.5) continue;
-    const up = n.y>0 ? B : A, dn = up===A ? B : A;   // Matter의 법선은 B에서 A 쪽을 향한다
-    if (!up.ctype || up.position.y>=FALL_Y) continue;
-    const e=on.get(up)||{xs:[],ys:[],dn:new Set()};
-    for (const p of pts){ e.xs.push(p.x); e.ys.push(p.y); }
-    e.dn.add(dn); on.set(up,e);
-  }
-  const holds=new Map();                             // 아래 의자 → 바로 위에 얹힌 의자들
-  for (const [up,e] of on) for (const d of e.dn) if (d.ctype){ if(!holds.has(d)) holds.set(d,new Set()); holds.get(d).add(up); }
-  let worst=0, all={m:0,mx:0,my:0};
-  for (const [c,e] of on){
-    const load=new Set([c]), st=[c];
-    while (st.length){ const x=st.pop(); for (const u of holds.get(x)||[]) if(!load.has(u)){ load.add(u); st.push(u); } }
-    let m=0,mx=0,my=0; for (const b of load){ m+=b.mass; mx+=b.mass*b.position.x; my+=b.mass*b.position.y; }
-    const cx=mx/m, cy=my/m;
-    const x0=Math.min(...e.xs), x1=Math.max(...e.xs), base=Math.max(...e.ys);
-    const half=Math.max(3,(x1-x0)/2), raw=(cx-(x0+x1)/2)/half, H=Math.max(0,base-cy);
-    // 닿는 점은 매 순간 조금씩 바뀐다. 그대로 쓰면 힘이 켜졌다 꺼졌다 하며 덜덜 떨므로 천천히 따라가게 한다
-    if (apply){ if (!(balStep-c.balStep<=6)){ c.balR=raw; c.balT=0; } else c.balR+=(raw-c.balR)*0.08; c.balStep=balStep; c.balT++; }
-    const ratio = apply ? c.balR : raw;
-    if (e.dn.has(plinth)){ all.m+=m; all.mx+=mx; all.my+=my; }
-    const lim=balLimit(H);
-    worst=Math.max(worst, Math.abs(ratio)/lim);
-    // 넘어가야 할 만큼 치우쳤는데 1초 넘게 그대로면 어딘가에 걸려 버티는 것. 치우침이 달라질 때까지 힘을 멈춘다
-    if (apply){ const still=c.angularSpeed<0.002 && c.speed<0.05;
-      if (Math.abs(ratio)>lim && still) c.braced=(c.braced||0)+1; else if (!still) c.braced=0;
-      if (c.braced>60 && Math.abs(ratio-(c.braceRatio??ratio))>0.08) c.braced=0;
-      if (c.braced===60) c.braceRatio=ratio; }
-    if (apply && c.balT>20 && Math.abs(ratio)>lim && !(c.braced>60)){   // 막 닿아 튀는 동안은 건드리지 않는다
-      const k=Math.min(0.4, Math.abs(ratio)-lim+0.1)*Math.sign(ratio);
-      // 미는 힘이 아니라 기울이는 힘만: 무게중심 높이에서 바깥으로, 받침에서 같은 크기로 안쪽으로 → 미끄러지지 않고 기운다
-      const F=m*0.001*BAL_K*k, mid=(x0+x1)/2;
-      Body.applyForce(c, {x:c.position.x, y:cy}, {x:F, y:0});
-      Body.applyForce(c, {x:mid, y:base}, {x:-F, y:0});
-    }
-  }
-  S.bal = all.m ? { x:all.mx/all.m, y:all.my/all.m, worst } : null;
-}
-Events.on(engine,'beforeUpdate',()=>balance(true));
-Events.on(engine,'afterUpdate',()=>{ // 너무 빨리 떨어져 얇은 다리를 뚫지 않게
-  for (const b of S.chairs){ if (b.speed>7){ const k=7/b.speed; Body.setVelocity(b,{x:b.velocity.x*k,y:b.velocity.y*k}); } }
-});
+/* ── 물리 ── planck.js(Box2D). 화면 단위(1 = 1.25cm)를 그대로 쓰고, 엔진에는 미터로 넘긴다
+   중력은 실제와 같은 9.8m/s². 공기 저항·속도 제한·보정하는 힘 없이 엔진이 계산한 그대로 움직인다.
+   멈춘 의자를 굳히는 잠재우기도 끈다 */
+const PPM = 100/CM;                         // 1m = 80 단위
+const STEP = 1/120;                         // 한 화면(1/60초)에 두 번 계산
+const world = new World({ gravity: Vec2(0, 9.8) });
+const m = v => v/PPM;
+function staticBox(x,y,w,h,fric){ const b=world.createBody({type:'static',position:Vec2(m(x),m(y))}); b.createFixture(Box(m(w/2),m(h/2)),{friction:fric}); return b; }
+const plinth = staticBox(0, FLOOR_Y/2, PLINTH_W, FLOOR_Y, .8);
+const floor  = staticBox(0, FLOOR_Y+40, 6000, 80, .8);
 
-function makeChair(type,pal,flip,palIdx){
-  const d=TYPES[type];
-  const parts=d.parts.map(pt=>{
-    let b, k;
-    if (pt.poly){ k=pt.k; const vs=pt.poly.map(([x,y])=>({x:x*flip,y}));
-      const c=Matter.Vertices.centre(vs); b=Bodies.fromVertices(c.x,c.y,[vs]); }
-    else { const [x,y,w,h,a,kk,r,dn]=pt; k=kk; b=Bodies.rectangle(x*flip,y,w,h,{angle:a*flip,chamfer:{radius:r}}); if (dn) Body.setDensity(b,.001*dn); }
-    b.key=k; b.paint=paint(pal,k); b.edge=shade(b.paint,.7); return b;
-  });
-  const body=Body.create({parts,friction:d.fric??.9,frictionStatic:1.2,restitution:d.rest??0,frictionAir:d.air??.02,slop:.03});
-  // Matter는 여러 부품 물체의 관성을 부품 자체 관성의 합으로만 잡아서 너무 잘 돈다. 평행축 정리로 다시 계산
-  let I=0, M=0; for (const pt of parts){ const dx=pt.position.x-body.position.x, dy=pt.position.y-body.position.y; I+=pt.inertia+pt.mass*(dx*dx+dy*dy); M+=pt.mass; }
-  Body.setInertia(body, I*(body.mass/M));
-  if (d.mass!==1) Body.setMass(body, body.mass*d.mass);
-  body.ctype=type; body.palIdx=palIdx|0; body.flip=flip;
-  return body;
+/* 의자 하나. 엔진 몸체(body)는 놓는 순간 만든다. 들고 있는 동안은 모양과 자리만 가진다.
+   position(무게중심 근처의 기준점)·angle·bounds·speed 는 매 계산 뒤 sync()로 화면 단위에 맞춰 둔다 */
+class Chair {
+  constructor(type,pal,flip,palIdx){
+    const d=TYPES[type];
+    this.ctype=type; this.palIdx=palIdx|0; this.flip=flip; this.body=null;
+    this.parts=d.parts.map(pt=>{
+      if (pt.poly) return { poly:pt.poly.map(([x,y])=>[x*flip,y]), key:pt.k, deco:!!pt.deco, dn:1 };
+      const [x,y,w,h,a,k,r,dn]=pt; return { x:x*flip, y, w, h, a:a*flip, r, key:k, dn:dn||1 };
+    });
+    // 기준점을 모양의 면적 중심으로 옮긴다. 돌릴 때 이 점을 축으로 돈다
+    let A=0,cx=0,cy=0;
+    for (const p of this.parts){ if (p.deco) continue; const ar=p.poly?polyArea(p.poly):p.w*p.h, c=p.poly?polyCentre(p.poly):[p.x,p.y]; A+=ar; cx+=ar*c[0]; cy+=ar*c[1]; }
+    cx/=A; cy/=A;
+    for (const p of this.parts){ if (p.poly) p.poly=p.poly.map(([x,y])=>[x-cx,y-cy]); else { p.x-=cx; p.y-=cy; } }
+    this.fric=d.fric??.7; this.rest=d.rest??0; this.dens=20*d.mass;
+    this.position={x:0,y:0}; this.angle=0; this.velocity={x:0,y:0}; this.speed=0; this.angularSpeed=0;
+    this.bounds={min:{x:0,y:0},max:{x:0,y:0}};
+    recolor(this); this.geom();
+  }
+  // 몸체가 없으면 자리만, 있으면 엔진 쪽 위치도 옮긴다
+  setPose(x,y,a=this.angle){
+    this.position.x=x; this.position.y=y; this.angle=a;
+    if (this.body){ this.body.setTransform(Vec2(m(x),m(y)),a); this.body.setAwake(true); }
+    this.geom();
+  }
+  addToWorld(){
+    const b=world.createBody({type:'dynamic',position:Vec2(m(this.position.x),m(this.position.y)),angle:this.angle,bullet:true,allowSleep:false});
+    for (const p of this.parts){ if (p.deco) continue;
+      const shape = p.poly ? Polygon(p.poly.map(([x,y])=>Vec2(m(x),m(y)))) : Box(m(p.w/2),m(p.h/2),Vec2(m(p.x),m(p.y)),p.a);
+      b.createFixture(shape,{density:this.dens*p.dn,friction:this.fric,restitution:this.rest}); }
+    this.body=b; this.sync();
+  }
+  removeFromWorld(){ if (this.body){ world.destroyBody(this.body); this.body=null; } }
+  sync(){
+    const b=this.body; if(!b) return;
+    const p=b.getPosition(), v=b.getLinearVelocity();
+    this.position.x=p.x*PPM; this.position.y=p.y*PPM; this.angle=b.getAngle();
+    this.velocity.x=v.x*PPM/60; this.velocity.y=v.y*PPM/60;        // 예전 단위(1/60초에 움직인 거리)에 맞춘다
+    this.speed=Math.hypot(this.velocity.x,this.velocity.y); this.angularSpeed=Math.abs(b.getAngularVelocity())/60;
+    this.geom();
+  }
+  // 부품 모서리를 화면 좌표로 계산해 외곽(bounds)을 잡는다
+  geom(){
+    const c=Math.cos(this.angle), s=Math.sin(this.angle), X=this.position.x, Y=this.position.y;
+    let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+    const add=(lx,ly)=>{ const wx=X+lx*c-ly*s, wy=Y+lx*s+ly*c; if(wx<x0)x0=wx; if(wx>x1)x1=wx; if(wy<y0)y0=wy; if(wy>y1)y1=wy; };
+    for (const p of this.parts){
+      if (p.poly){ for (const [x,y] of p.poly) add(x,y); continue; }
+      const pc=Math.cos(p.a), ps=Math.sin(p.a);
+      for (const [dx,dy] of [[-p.w/2,-p.h/2],[p.w/2,-p.h/2],[p.w/2,p.h/2],[-p.w/2,p.h/2]]) add(p.x+dx*pc-dy*ps, p.y+dx*ps+dy*pc);
+    }
+    this.bounds.min.x=x0; this.bounds.max.x=x1; this.bounds.min.y=y0; this.bounds.max.y=y1;
+  }
 }
-function recolor(b){ const pal=palAt(b.ctype,b.palIdx); for (let i=1;i<b.parts.length;i++){ const p=b.parts[i]; p.paint=paint(pal,p.key); p.edge=shade(p.paint,.7); } }
+function polyArea(P){ let a=0; for (let i=0;i<P.length;i++){ const [x1,y1]=P[i],[x2,y2]=P[(i+1)%P.length]; a+=x1*y2-x2*y1; } return Math.abs(a/2); }
+function polyCentre(P){ let a=0,cx=0,cy=0; for (let i=0;i<P.length;i++){ const [x1,y1]=P[i],[x2,y2]=P[(i+1)%P.length], f=x1*y2-x2*y1; a+=f; cx+=(x1+x2)*f; cy+=(y1+y2)*f; } return [cx/(3*a), cy/(3*a)]; }
+function physStep(){ world.step(STEP,10,8); world.step(STEP,10,8); for (const b of S.chairs) b.sync(); }
+
+function makeChair(type,pal,flip,palIdx){ return new Chair(type,pal,flip,palIdx); }
+function recolor(b){ const pal=palAt(b.ctype,b.palIdx); for (const p of b.parts){ p.paint=paint(pal,p.key); p.edge=shade(p.paint,.7); } }
 
 /* ── 상태 ── */
 const S = { skin:'basic', mode:'basic', players:1, multi:false, state:'home', chairs:[], held:null, heldX:0, angle:0, flip:1, heldType:'chair', heldPal:0,
@@ -651,13 +639,13 @@ function bestKey(){ return 'chairstack.best.'+S.mode; }
 function loadBest(){ try{ return JSON.parse(load(bestKey()))||null; }catch(e){ return null; } }
 function saveBest(v){ store(bestKey(),JSON.stringify(v)); }
 
-function clearChairs(){ for (const b of S.chairs) Composite.remove(world,b); S.chairs=[]; S.fx=[]; }
-function placeOn(b,x,bottom){ Body.setPosition(b,{x,y:0}); Body.setPosition(b,{x,y:bottom-(b.bounds.max.y)}); }
+function clearChairs(){ for (const b of S.chairs) b.removeFromWorld(); S.chairs=[]; S.fx=[]; }
+function placeOn(b,x,bottom){ b.setPose(x,0,0); b.setPose(x,bottom-b.bounds.max.y); }
 function demo(){ // 메인 화면 뒤에 세워 둘 작은 탑
   clearChairs();
   const ch=makeChair('chair',palAt('chair',0),1,0); placeOn(ch,-46,-0.5);
   const bb=makeChair('beanbag',palAt('beanbag',0),1,0); placeOn(bb,40,-0.5);
-  for (const b of [ch,bb]){ Composite.add(world,b); S.chairs.push(b); }
+  for (const b of [ch,bb]){ b.addToWorld(); S.chairs.push(b); }
   S.held=null;
 }
 
@@ -708,8 +696,8 @@ function posHeld(){
   const b=S.held; if(!b) return;
   const half=view.w/2/view.s, lim=Math.min(half-40, 280);
   S.heldX=Math.max(-lim,Math.min(lim,S.heldX));
-  Body.setAngle(b,0); Body.setPosition(b,{x:S.heldX,y:0}); Body.setAngle(b,S.angle);
-  const target=S.towerTop-60; Body.setPosition(b,{x:S.heldX,y:b.position.y+(target-b.bounds.max.y)});
+  b.setPose(S.heldX,0,S.angle);
+  const target=S.towerTop-60; b.setPose(S.heldX,target-b.bounds.max.y);
 }
 const canAct = () => S.state==='aim' && (!S.multi || NET.myTurn);
 function rotate(rad){ if(!canAct()) return; S.angle+=rad; posHeld(); }   // 각도는 단위 없이 자유롭게
@@ -718,8 +706,7 @@ function drop(){
   if (!canAct()||!S.held) return;
   posHeld();
   const b=S.held; S.held=null;
-  Body.setVelocity(b,{x:0,y:0}); Body.setAngularVelocity(b,0);
-  Composite.add(world,b); S.chairs.push(b);
+  b.addToWorld(); S.chairs.push(b);
   S.lastDropper=S.turn; S.dropT=performance.now(); S.still=0; S.state='settling';
   if (S.multi) sendNet({t:'drop', seq:NET.seq, x:b.position.x, y:b.position.y, a:b.angle, f:b.flip});
 }
@@ -831,8 +818,7 @@ function onNet(m){
     case 'drop': {
       if (NET.myTurn || !S.held) return;
       const b=S.held; S.held=null;
-      Body.setAngle(b,m.a); Body.setPosition(b,{x:m.x,y:m.y});
-      Composite.add(world,b); S.chairs.push(b); S.state='watching';
+      b.setPose(m.x,m.y,m.a); b.addToWorld(); S.chairs.push(b); S.state='watching';
       return;
     }
     case 'fr':
@@ -882,8 +868,7 @@ function loadSnapshot(list){
   for (const c of list){
     if (!TYPES[c.k]) continue;
     const b=makeChair(c.k,palAt(c.k,c.p),c.f,c.p);
-    Body.setAngle(b,c.a); Body.setPosition(b,{x:c.x,y:c.y}); b.settled=true;
-    Composite.add(world,b); S.chairs.push(b);
+    b.setPose(c.x,c.y,c.a); b.settled=true; b.addToWorld(); S.chairs.push(b);
   }
 }
 function snapshot(){ return S.chairs.map(b=>({k:b.ctype,p:b.palIdx,f:b.flip,x:+b.position.x.toFixed(2),y:+b.position.y.toFixed(2),a:+b.angle.toFixed(4)})); }
@@ -1085,13 +1070,15 @@ function towerTop(){ let top=0; for (const b of S.chairs){ if (b.position.y<FALL
 function settledTop(){ let top=0; for (const b of S.chairs){ if (b.settled && b.position.y<FALL_Y && b.bounds.min.y<top) top=b.bounds.min.y; } return top; }
 
 function drawBody(b,alpha){
-  ctx.globalAlpha=alpha;
-  for (let i=1;i<b.parts.length;i++){
-    const p=b.parts[i], v=p.vertices;
-    ctx.beginPath(); ctx.moveTo(v[0].x,v[0].y); for (let j=1;j<v.length;j++) ctx.lineTo(v[j].x,v[j].y); ctx.closePath();
-    ctx.fillStyle=p.paint; ctx.fill(); ctx.lineWidth=1.1; ctx.strokeStyle=p.edge; ctx.stroke();
+  ctx.globalAlpha=alpha; ctx.save(); ctx.translate(b.position.x,b.position.y); ctx.rotate(b.angle);
+  ctx.lineWidth=1.1;
+  for (const p of b.parts){
+    ctx.beginPath();
+    if (p.poly){ p.poly.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y)); ctx.closePath(); }
+    else { ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.a); rr(ctx,-p.w/2,-p.h/2,p.w,p.h,p.r||0); ctx.restore(); }
+    ctx.fillStyle=p.paint; ctx.fill(); ctx.strokeStyle=p.edge; ctx.stroke();
   }
-  ctx.globalAlpha=1;
+  ctx.restore(); ctx.globalAlpha=1;
 }
 
 function render(now){
@@ -1206,14 +1193,13 @@ function frame(now){
   const sim = !S.multi || NET.myTurn || S.state==='falling' || S.state==='over';
   if (sim){
     acc+=dt; let steps=0;
-    while(acc>=1000/60 && steps<3){ Engine.update(engine,1000/60); acc-=1000/60; steps++; }
+    while(acc>=1000/60 && steps<3){ physStep(); acc-=1000/60; steps++; }
     if (steps===3) acc=0;
   } else {
-    acc=0; balance(false);
+    acc=0;
     const k=Math.min(1,dt*0.02);
     for (const b of S.chairs){ const t=b.target; if(!t) continue;
-      Body.setPosition(b,{x:b.position.x+(t[0]-b.position.x)*k, y:b.position.y+(t[1]-b.position.y)*k});
-      Body.setAngle(b,b.angle+(t[2]-b.angle)*k); }
+      b.setPose(b.position.x+(t[0]-b.position.x)*k, b.position.y+(t[1]-b.position.y)*k, b.angle+(t[2]-b.angle)*k); }
   }
 
   const tt=towerTop(); S.towerTop=tt; S.towerTopCm=-settledTop()*CM;
@@ -1354,6 +1340,7 @@ document.querySelectorAll('input[name=mode],input[name=players]').forEach(i=>i.a
 
 /* ── 버전 ── 새 버전은 맨 위에 한 줄 추가. 화면 오른쪽 위·메인 아래·CHANGELOG.md 가 이걸 따른다 */
 const VERSIONS=[
+  ['2.3','물리 엔진을 planck.js(Box2D)로 교체. 실제 크기·실제 중력, 공기 저항·속도 제한·기울이는 힘 없앰. 쌓아 둔 의자가 떨리지 않음'],
   ['2.2','무게중심 표시 없앰(감으로 맞추기). 룰렛은 돌 때 가운데에 크게. 우클릭 누르는 동안 회전, 휠 회전 없앰. 겹친 의자가 떨며 튕기던 문제 수정'],
   ['2.1','굳히기 대신 무게중심 로직. 위에 실린 무게가 높을수록 버티는 폭이 좁아짐. 자유 회전, 처음 각도 무작위, 나무 의자 걸쳐 끼우기'],
   ['2.0','같이 하기(방·코드·열린 방 목록·채팅, 최대 6명). 메인 화면, 테마는 오른쪽 위, 새 서체'],
