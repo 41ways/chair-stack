@@ -23,13 +23,13 @@
 
 - `index.html` 화면 전부. 물리 엔진은 planck.js 1.4.3(jsDelivr)
 - `room.js` 방 · 채팅 · 차례. v2.5부터 방을 만든 사람의 브라우저가 이걸 불러 돌린다. 다른 사람은 그 브라우저에 WebRTC(PeerJS 1.5.4)로 바로 붙고, 서로 찾는 것만 PeerJS 공용 중계(0.peerjs.com)를 거친다. 물리는 차례인 사람 화면이 계산해 위치를 흘려보내고, 멈추면 탑 전체 위치를 올린다. 방 쪽은 그걸 다음 차례의 출발점으로 저장하고, 어떤 의자가 나올지 정한다
-- `worker.js` v2.4까지 쓰던 Cloudflare Worker + Durable Object 방 서버. 지금은 쓰지 않는다
+- `worker.js`, `wrangler.toml` v2.4까지 쓰던 Cloudflare Worker + Durable Object 방 서버. 배포는 지웠고 기록으로만 남겨 둔다
 - 서버가 없어 열린 방 목록은 없앴다. 회사·학교처럼 막힌 네트워크에서는 연결이 안 될 수 있다
 
 ## 실행과 배포
 
 GitHub Pages(main 루트)라 푸시하면 반영된다. 로컬은 아무 정적 서버(`python3 -m http.server`)로 연다.
 
-예전 주소 chair-stack.41ways.workers.dev 에도 같은 화면을 올려 두었다(`npx wrangler deploy`). 같이 하기는 거기서도 P2P라 Durable Object를 쓰지 않는다.
+예전 주소 chair-stack.41ways.workers.dev 는 2026-11-18에 Worker를 지워 없어졌다.
 
 보드게임 Chairs(1999)의 규칙을 참고했다.
