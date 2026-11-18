@@ -1259,9 +1259,11 @@ cv.addEventListener('pointercancel',()=>{ touch=null; mouseRot=0; });
 cv.addEventListener('lostpointercapture',()=>{ mouseRot=0; });
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 
+// 글자 키는 자판 위치(code)로 읽는다. 한글 입력 상태면 e.key 가 'ㄹ' 처럼 들어와 F·A·D 가 안 먹는다
+const keyOf=e=>/^Key[A-Z]$/.test(e.code)?e.code.slice(3).toLowerCase():e.key.length===1?e.key.toLowerCase():e.key;
 addEventListener('keydown',e=>{
   if (e.target.closest && e.target.closest('input,textarea')) return;
-  const k=e.key.length===1?e.key.toLowerCase():e.key;
+  const k=keyOf(e);
   if (k==='Escape'){ $('themePop').hidden=true; if(!$('chat').hidden) closeChat(); return; }
   if (S.multi && k==='Enter'){ e.preventDefault(); openChat(); return; }
   if (S.state==='menu'){ if(k==='Enter'){ e.preventDefault(); startGame(); } return; }
@@ -1271,7 +1273,7 @@ addEventListener('keydown',e=>{
   else if (k==='f'){ flip(); }
   else if (k===' '||k==='Enter'||k==='s'){ e.preventDefault(); if(S.state==='spin') spinSkip=true; else drop(); }
 });
-addEventListener('keyup',e=>{ keys.delete(e.key.length===1?e.key.toLowerCase():e.key); });
+addEventListener('keyup',e=>{ keys.delete(keyOf(e)); });
 addEventListener('blur',()=>{ keys.clear(); holdDir=0; rotDir=0; mouseRot=0; });
 
 document.querySelectorAll('[data-hold]').forEach(b=>{
@@ -1340,6 +1342,7 @@ document.querySelectorAll('input[name=mode],input[name=players]').forEach(i=>i.a
 
 /* ── 버전 ── 새 버전은 맨 위에 한 줄 추가. 화면 오른쪽 위·메인 아래·CHANGELOG.md 가 이걸 따른다 */
 const VERSIONS=[
+  ['2.4','한글 입력 상태에서도 F 뒤집기, A·D·Q·E·S 키가 먹음'],
   ['2.3','물리 엔진을 planck.js(Box2D)로 교체. 실제 크기·실제 중력, 공기 저항·속도 제한·기울이는 힘 없앰. 쌓아 둔 의자가 떨리지 않음'],
   ['2.2','무게중심 표시 없앰(감으로 맞추기). 룰렛은 돌 때 가운데에 크게. 우클릭 누르는 동안 회전, 휠 회전 없앰. 겹친 의자가 떨며 튕기던 문제 수정'],
   ['2.1','굳히기 대신 무게중심 로직. 위에 실린 무게가 높을수록 버티는 폭이 좁아짐. 자유 회전, 처음 각도 무작위, 나무 의자 걸쳐 끼우기'],
