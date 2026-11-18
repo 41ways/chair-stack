@@ -6,14 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gaegu:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <meta name="description" content="전시대 위에 의자를 하나씩 쌓아 올리는 물리 게임. 확장판은 룰렛이 흔들의자·스툴·소파·왕좌 중에서 골라 줘요.">
 <style>
 /* Layout: 한 화면 게임. 위 기록줄 · 가운데 전시장(캔버스) · 아래 조작줄. 확장판 룰렛은 전시장 오른쪽 위 */
 :root{
   --wall:#e3e7e0; --wall-2:#dbe0d8; --floor:#b8b0a3; --floor-line:#a39a8c;
   --plinth:#f6f7f3; --plinth-edge:#c5cac1;
-  --ink:#1e2925; --ink-soft:#5a6761; --line:#1e292522;
+  --ink:#1e2925; --ink-soft:#5a6761; --line:#1e292522; --chalk:#5a6761;
   --accent:#de5435; --accent-ink:#ffffff;
   --p2:#3c6db0;
   --panel:#fbfcf8; --panel-line:#1e29251f; --shadow:0 10px 30px #1e292521;
@@ -25,7 +25,7 @@
   :root:not([data-theme="light"]){
     --wall:#192024; --wall-2:#1d2529; --floor:#2b3230; --floor-line:#38403d;
     --plinth:#2c363a; --plinth-edge:#414d51;
-    --ink:#e8ece5; --ink-soft:#9ba7a1; --line:#e8ece51c;
+    --ink:#e8ece5; --ink-soft:#9ba7a1; --line:#e8ece51c; --chalk:#9ba7a1;
     --accent:#ff7556; --accent-ink:#1b110e;
     --p2:#79a4e2;
     --panel:#222b2f; --panel-line:#e8ece51c; --shadow:0 10px 30px #00000059;
@@ -35,7 +35,7 @@
 :root[data-theme="dark"]{
   --wall:#192024; --wall-2:#1d2529; --floor:#2b3230; --floor-line:#38403d;
   --plinth:#2c363a; --plinth-edge:#414d51;
-  --ink:#e8ece5; --ink-soft:#9ba7a1; --line:#e8ece51c;
+  --ink:#e8ece5; --ink-soft:#9ba7a1; --line:#e8ece51c; --chalk:#9ba7a1;
   --accent:#ff7556; --accent-ink:#1b110e;
   --p2:#79a4e2;
   --panel:#222b2f; --panel-line:#e8ece51c; --shadow:0 10px 30px #00000059;
@@ -43,6 +43,18 @@
 }
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
+/* 청소시간 테마: 칠판과 교실 바닥. 밝기 설정과 상관없이 한 가지 모습 */
+:root[data-skin="class"]{
+  --wall:#2f4a3b; --wall-2:#2b4436; --floor:#c4945a; --floor-line:#a87943;
+  --plinth:#d7a868; --plinth-edge:#8a5f30;
+  --ink:#2b2620; --ink-soft:#6b5d4a; --line:#f1efe438; --chalk:#f1efe4;
+  --accent:#c8352b; --accent-ink:#ffffff; --p2:#2f6fb0;
+  --panel:#f4ecd6; --panel-line:#2b262024; --shadow:0 8px 24px #00000038;
+  --font-display:"Gaegu","Gowun Dodum",system-ui,sans-serif;
+  --font-body:"Gowun Dodum","IBM Plex Sans KR",system-ui,sans-serif;
+  color-scheme:light;
+}
+:root[data-skin="class"] .logo{font-weight:700;font-size:28px}
 html,body{height:100%}
 body{margin:0;font-size:14px}
 body{background:var(--wall);color:var(--ink);font-family:var(--font-body);overflow:hidden;-webkit-tap-highlight-color:transparent}
@@ -188,7 +200,7 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
       <div class="card">
         <div class="sect" style="gap:10px">
           <h1>의자 쌓기</h1>
-          <p class="lead">전시대 위에 의자를 하나씩 올려 탑을 쌓아요. 하나라도 바닥으로 떨어지면 끝. 위치와 각도를 골라 놓으면 의자가 흔들리다 멈추고, 그다음 의자가 나와요.</p>
+          <p class="lead">의자를 하나씩 올려 탑을 쌓아요. 하나라도 바닥으로 떨어지면 끝. 위치와 각도를 골라 놓으면 의자가 흔들리다 멈추고, 그다음 의자가 나와요.</p>
         </div>
         <div class="sect">
           <span class="lab">판 고르기</span>
@@ -208,6 +220,14 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
             <label class="opt"><input type="radio" name="players" id="pl2" value="2"><span>둘이서</span></label>
           </div>
           <span class="segnote" id="plNote">최고 기록에 도전해요.</span>
+        </div>
+        <div class="sect">
+          <span class="lab">테마</span>
+          <div class="seg">
+            <label class="opt"><input type="radio" name="skin" id="skinBasic" value="basic" checked><span>기본</span></label>
+            <label class="opt"><input type="radio" name="skin" id="skinClass" value="class"><span>청소시간</span></label>
+          </div>
+          <span class="segnote" id="skinNote">전시대 위에 쌓아요.</span>
         </div>
         <p class="keys">
           마우스 · 움직여서 위치, 휠로 회전, 클릭으로 놓기<br>
@@ -264,7 +284,7 @@ const rocking = [
 const TYPES = {
   chair:   { name:'나무 의자', p:28, note:'기본 의자', mass:1,
     pal:[{a:'#c98a52',b:'#9a6234'},{a:'#de5a3c',b:'#a83c24'},{a:'#4f7a9c',b:'#365a75'},{a:'#e4b44c',b:'#b5872b'},{a:'#7c9b70',b:'#5a7650'},{a:'#ece5d8',b:'#bfb39e'}],
-    parts:[[0,3.5,54,7,0,'a',2.5],[23,20.5,6,27,0,'a',2.5],[-24,-1,6,70,0,'a',2.5],[-21,-24,10,20,0,'b',3],[0,25,42,4,0,'b',1.5]] },
+    parts:[[0,3.5,54,7,0,'a',2.5],[23,20.5,6,27,0,'f',2.5],[-24,-1,6,70,0,'f',2.5],[-21,-24,10,20,0,'b',3],[0,25,42,4,0,'g',1.5]] },
   stool:   { name:'스툴', p:20, note:'좁은 상판, 벌어진 다리', mass:.8,
     pal:[{a:'#e8b23f',b:'#5b6862'}],
     parts:[[0,4,46,8,0,'a',3.5],[-14,26,5,38,0.13,'b',2],[14,26,5,38,-0.13,'b',2],[0,31,36,3.5,0,'b',1.5]] },
@@ -284,6 +304,9 @@ const TYPES = {
     parts:[[-24,22,9,26,0,'b',3],[24,22,9,26,0,'b',3],[0,-40,52,74,0,'a',8],[0,-38,36,56,0,'c',6],[0,3,62,10,0,'a',4],[0,-1,50,6,0,'c',3],[-33,-9,9,26,0,'a',3],[33,-9,9,26,0,'a',3],[-20,-80,8,10,0,'a',3],[0,-84,9,14,0,'a',3.5],[20,-80,8,10,0,'a',3]] },
 };
 const ORDER = ['chair','stool','rocking','bench','armchair','sofa','throne'];
+const SCHOOL = [{a:'#c98b4a',b:'#b77b3f',f:'#7c848b',g:'#697077'},{a:'#d9a066',b:'#c68b50',f:'#7c848b',g:'#697077'},{a:'#b9783f',b:'#a46a35',f:'#5f7f9c',g:'#506d87'}];
+const paint = (pal,k) => pal[k] ?? (k==='g' ? pal.b : pal.a);
+function palettesFor(type){ return S.skin==='class' && type==='chair' ? SCHOOL : TYPES[type].pal; }
 for (const k of ORDER) { // 아이콘용 외곽
   let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
   for (const [x,y,w,h,a] of TYPES[k].parts) {
@@ -309,7 +332,7 @@ function rr(c,x,y,w,h,r){ r=Math.min(r,w/2,h/2); if(c.roundRect){c.roundRect(x,y
 function drawIcon(c,type,pal,cx,cy,size){
   const d=TYPES[type], bb=d.bb, sc=size/Math.max(bb.w,bb.h);
   c.save(); c.translate(cx,cy); c.scale(sc,sc); c.translate(-(bb.x0+bb.x1)/2,-(bb.y0+bb.y1)/2);
-  for (const [x,y,w,h,a,k,r] of d.parts){ c.save(); c.translate(x,y); c.rotate(a); c.beginPath(); rr(c,-w/2,-h/2,w,h,r); c.fillStyle=pal[k]; c.fill(); c.restore(); }
+  for (const [x,y,w,h,a,k,r] of d.parts){ c.save(); c.translate(x,y); c.rotate(a); c.beginPath(); rr(c,-w/2,-h/2,w,h,r); c.fillStyle=paint(pal,k); c.fill(); c.restore(); }
   c.restore();
 }
 
@@ -318,7 +341,7 @@ let T = {};
 function readTheme(){
   const cs=getComputedStyle(document.documentElement), g=n=>cs.getPropertyValue(n).trim();
   T={wall:g('--wall'),wall2:g('--wall-2'),floor:g('--floor'),floorLine:g('--floor-line'),plinth:g('--plinth'),plinthEdge:g('--plinth-edge'),
-     ink:g('--ink'),soft:g('--ink-soft'),line:g('--line'),accent:g('--accent'),p2:g('--p2'),panel:g('--panel')};
+     ink:g('--ink'),soft:g('--ink-soft'),line:g('--line'),chalk:g('--chalk'),accent:g('--accent'),p2:g('--p2'),panel:g('--panel')};
   drawWheel(); buildOdds();
 }
 
@@ -336,7 +359,7 @@ function makeChair(type,pal,flip){
   const d=TYPES[type];
   const parts=d.parts.map(([x,y,w,h,a,k,r])=>{
     const b=Bodies.rectangle(x*flip,y,w,h,{angle:a*flip,chamfer:{radius:r}});
-    b.paint=pal[k]; b.edge=shade(pal[k],.7); return b;
+    b.paint=paint(pal,k); b.edge=shade(b.paint,.7); return b;
   });
   const body=Body.create({parts,friction:.9,frictionStatic:1.2,restitution:0,frictionAir:.02,slop:.03});
   if (d.mass!==1) Body.setMass(body, body.mass*d.mass);
@@ -345,7 +368,7 @@ function makeChair(type,pal,flip){
 }
 
 /* ── 상태 ── */
-const S = { mode:'basic', players:1, state:'menu', chairs:[], held:null, heldX:0, angle:0, flip:1, heldType:'chair', heldPal:null,
+const S = { skin:'basic', mode:'basic', players:1, state:'menu', chairs:[], held:null, heldX:0, angle:0, flip:1, heldType:'chair', heldPal:null,
   count:0, score:0, turn:0, lastDropper:0, dropT:0, still:0, gen:0, fx:[], camTop:null, towerTop:0, maxH:0 };
 const pick = a => a[Math.floor(Math.random()*a.length)];
 function pickType(){ let r=Math.random()*100; for (const k of ORDER){ r-=TYPES[k].p; if(r<0) return k; } return 'chair'; }
@@ -362,7 +385,7 @@ function demo(){ // 처음 화면 뒤에 세워 둘 작은 탑
   const so=makeChair('sofa',TYPES.sofa.pal[0],1); placeOn(so,0,-0.5);
   const be=makeChair('bench',TYPES.bench.pal[0],1); placeOn(be,0,so.bounds.min.y-0.5);
   const st=makeChair('stool',TYPES.stool.pal[0],1); placeOn(st,-12,be.bounds.min.y-0.5);
-  const ch=makeChair('chair',TYPES.chair.pal[0],1); placeOn(ch,26,be.bounds.min.y-0.5);
+  const ch=makeChair('chair',palettesFor('chair')[0],1); placeOn(ch,26,be.bounds.min.y-0.5);
   for (const b of [so,be,st,ch]){ Composite.add(world,b); S.chairs.push(b); }
   S.held=null;
 }
@@ -388,7 +411,7 @@ function nextChair(){
   } else holdChair('chair');
 }
 function holdChair(type){
-  S.heldType=type; S.heldPal=pick(TYPES[type].pal); S.angle=0; S.flip=Math.random()<.5?1:-1;
+  S.heldType=type; S.heldPal=pick(palettesFor(type)); S.angle=0; S.flip=Math.random()<.5?1:-1;
   if (type==='chair') S.flip=1;
   S.held=makeChair(type,S.heldPal,S.flip); S.state='aim'; posHeld();
 }
@@ -435,7 +458,7 @@ function showOver(){
     big.push(['쌓은 의자',S.count+'개'],['최고 높이',h+' m'],['차례',S.count+1+'번째']);
     $('oBest').hidden=true;
   } else {
-    $('oTitle').textContent=pick(['와르르','쿵','아이고','무너졌어요']);
+    $('oTitle').textContent=pick(S.skin==='class'?['다시 청소!','와장창','선생님 오신다']:['와르르','쿵','아이고','무너졌어요']);
     $('oSub').textContent= S.count===0 ? '첫 의자부터 떨어졌어요. 전시대 한가운데를 노려 보세요.' : `의자 ${S.count}개를 쌓고 무너졌어요.`;
     const score = S.count;
     big.push(['쌓은 의자',S.count+'개'],['최고 높이',h+' m'],['기록',score+'개']);
@@ -460,14 +483,14 @@ function drawWheel(){
   if(!T.panel) return;
   c.save(); c.translate(size/2,size/2);
   SEGS.forEach((g,i)=>{
-    const col=TYPES[g.k].pal[0].a;
+    const col=palettesFor(g.k)[0].a;
     c.beginPath(); c.moveTo(0,0); c.arc(0,0,R,g.a0+wheelRot-Math.PI/2,g.a1+wheelRot-Math.PI/2); c.closePath();
     c.fillStyle=mix(T.panel,col,.28); c.fill(); c.strokeStyle=T.panel; c.lineWidth=2; c.stroke();
   });
   SEGS.forEach(g=>{
     const m=(g.a0+g.a1)/2+wheelRot-Math.PI/2, span=g.a1-g.a0, r=R*.64;
     const sz=Math.min(R*.42, span*r*.9);
-    const pal=TYPES[g.k].pal[0];
+    const pal=palettesFor(g.k)[0];
     drawIcon(c,g.k,pal,Math.cos(m)*r,Math.sin(m)*r,sz);
   });
   c.beginPath(); c.arc(0,0,R*.16,0,Math.PI*2); c.fillStyle=T.panel; c.fill(); c.strokeStyle=T.line; c.lineWidth=1; c.stroke();
@@ -503,7 +526,7 @@ function buildOdds(){
   el.innerHTML='';
   for (const k of ORDER){
     const d=TYPES[k], cv=document.createElement('canvas'), dpr=Math.min(2,devicePixelRatio||1);
-    cv.width=40*dpr; cv.height=28*dpr; const c=cv.getContext('2d'); c.scale(dpr,dpr); drawIcon(c,k,d.pal[0],20,14,26);
+    cv.width=40*dpr; cv.height=28*dpr; const c=cv.getContext('2d'); c.scale(dpr,dpr); drawIcon(c,k,palettesFor(k)[0],20,14,26);
     const nm=document.createElement('div'); nm.className='nm'; nm.innerHTML=`<b>${d.name}</b><small>${d.note}</small>`;
     const pc=document.createElement('span'); pc.className='pc'; pc.textContent=d.p+'%';
     const bar=document.createElement('div'); bar.className='bar'; bar.innerHTML=`<i style="width:${d.p/28*100}%"></i>`;
@@ -567,18 +590,21 @@ function render(now){
   ctx.save(); ctx.translate(w/2,-top*s); ctx.scale(s,s);
 
   // 벽지 줄무늬
-  ctx.fillStyle=T.wall2;
-  for (let x=Math.floor(left/56)*56; x<right; x+=56) ctx.fillRect(x+20,top,16,FLOOR_Y-top);
+  const cls=S.skin==='class';
+  if (!cls){ ctx.fillStyle=T.wall2;
+    for (let x=Math.floor(left/56)*56; x<right; x+=56) ctx.fillRect(x+20,top,16,FLOOR_Y-top); }
+  else { ctx.fillStyle=T.wall2; // 지우개 자국
+    for (let y=Math.floor(top/260)*260; y<FLOOR_Y; y+=260){ ctx.fillRect(left+60,y+40,180,26); ctx.fillRect(right-260,y+150,200,22); } }
 
   // 높이 눈금 (50cm마다, 1m마다 글자)
-  const U=100/CM, fs=11/s;
-  ctx.font=`500 ${fs}px "IBM Plex Mono", ui-monospace, monospace`; ctx.textBaseline='middle';
+  const U=100/CM, fs=(cls?16:11)/s;
+  ctx.font=cls?`700 ${fs}px "Gaegu", cursive`:`500 ${fs}px "IBM Plex Mono", ui-monospace, monospace`; ctx.textBaseline='middle';
   for (let m=1; ; m++){
     const y=-m*U/2; if (y<top-10) break; if (y>bottom) continue;
     const full=m%2===0;
     ctx.strokeStyle=T.line; ctx.lineWidth=1/s;
     if (full){ ctx.setLineDash([4/s,6/s]); ctx.beginPath(); ctx.moveTo(left+44/s,y); ctx.lineTo(right,y); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle=T.soft; ctx.textAlign='left'; ctx.fillText((m/2)+' m',left+10/s,y); }
+      ctx.fillStyle=T.chalk; ctx.textAlign='left'; ctx.fillText((m/2)+' m',left+10/s,y); }
     else { ctx.beginPath(); ctx.moveTo(left+10/s,y); ctx.lineTo(left+22/s,y); ctx.stroke(); }
   }
   // 최고 기록선
@@ -595,8 +621,11 @@ function render(now){
   // 바닥
   ctx.fillStyle=T.floor; ctx.fillRect(left,FLOOR_Y,right-left,Math.max(10,bottom-FLOOR_Y));
   ctx.fillStyle=T.floorLine; ctx.fillRect(left,FLOOR_Y,right-left,3);
-  for (let x=Math.floor(left/90)*90; x<right; x+=90){ ctx.fillRect(x,FLOOR_Y+3,1.5,bottom-FLOOR_Y); }
+  if (cls){ for (let r=0; FLOOR_Y+3+r*28<bottom; r++){ const y=FLOOR_Y+3+r*28; ctx.fillRect(left,y,right-left,1.5);
+      for (let x=Math.floor(left/150)*150+(r%2)*75; x<right; x+=150) ctx.fillRect(x,y,1.5,28); } }
+  else for (let x=Math.floor(left/90)*90; x<right; x+=90){ ctx.fillRect(x,FLOOR_Y+3,1.5,bottom-FLOOR_Y); }
 
+  if (cls){ drawDesk(); } else {
   // 전시대
   ctx.fillStyle='rgba(0,0,0,.08)'; ctx.fillRect(-PLINTH_W/2+6,FLOOR_Y-2,PLINTH_W+10,6);
   ctx.beginPath(); rr(ctx,-PLINTH_W/2,0,PLINTH_W,FLOOR_Y,3); ctx.fillStyle=T.plinth; ctx.fill();
@@ -604,6 +633,7 @@ function render(now){
   ctx.fillStyle=T.plinthEdge; ctx.fillRect(-PLINTH_W/2,10,PLINTH_W,1.2);
   ctx.fillStyle=T.soft; ctx.textAlign='center'; ctx.font=`500 ${10}px "IBM Plex Mono", ui-monospace, monospace`;
   ctx.fillText('NO. 01  ·  W 200  ·  0 cm', 0, 34);
+  }
 
   // 의자들
   for (const b of S.chairs) drawBody(b,1);
@@ -626,6 +656,16 @@ function render(now){
 }
 let bestCache={k:null,v:null,t:0};
 function loadBestCached(){ const k=bestKey(), t=performance.now(); if(bestCache.k!==k||t-bestCache.t>1000){ bestCache={k,v:loadBest(),t}; } return bestCache.v; }
+function drawDesk(){ // 청소시간: 교실 책상
+  const W=PLINTH_W;
+  ctx.fillStyle='rgba(0,0,0,.12)'; ctx.fillRect(-W/2+4,FLOOR_Y-3,W+8,6);
+  ctx.fillStyle='#7c848b';
+  ctx.fillRect(-W/2+10,36,8,FLOOR_Y-36); ctx.fillRect(W/2-18,36,8,FLOOR_Y-36); ctx.fillRect(-W/2+14,FLOOR_Y-34,W-28,6);
+  ctx.beginPath(); rr(ctx,-W/2+6,14,W-12,24,2); ctx.fillStyle=shade(T.plinth,.82); ctx.fill(); ctx.strokeStyle=T.plinthEdge; ctx.lineWidth=1.2; ctx.stroke();
+  ctx.beginPath(); rr(ctx,-W/2-4,0,W+8,15,3); ctx.fillStyle=T.plinth; ctx.fill(); ctx.stroke();
+  ctx.fillStyle=T.plinthEdge; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='700 15px "Gaegu", cursive';
+  ctx.fillText('2분단 3번', 0, 27);
+}
 function landingY(x){ // 그 x에서 가장 위에 있는 표면 (대략)
   let y = Math.abs(x)<=PLINTH_W/2 ? 0 : FLOOR_Y;
   for (const b of S.chairs){ if (b.bounds.min.x<=x && b.bounds.max.x>=x && b.bounds.min.y<y) y=b.bounds.min.y; }
@@ -659,7 +699,7 @@ function frame(now){
 
   // 카메라
   const vh=view.h/view.s;
-  const want=Math.min(-0.72*vh, tt-60-(S.held?S.held.bounds.max.y-S.held.bounds.min.y:90)-0.13*vh);
+  const want=Math.min(-0.6*vh, tt-60-(S.held?S.held.bounds.max.y-S.held.bounds.min.y:90)-0.13*vh);
   if (S.camTop===null) S.camTop=want;
   S.camTop+=(want-S.camTop)*Math.min(1,dt*0.006);
 
@@ -715,6 +755,14 @@ $('btnAgain').addEventListener('click',startGame);
 $('btnHome').addEventListener('click',toMenu);
 $('btnMenu').addEventListener('click',toMenu);
 
+function setSkin(sk){
+  S.skin=sk; const r=document.documentElement;
+  if (sk==='class') r.dataset.skin='class'; else delete r.dataset.skin;
+  try{ localStorage.setItem('chairstack.skin',sk); }catch(e){}
+  $('skinNote').textContent = sk==='class' ? '교실 책상 위에 의자를 올려요. 청소 시간처럼.' : '전시대 위에 쌓아요.';
+  readTheme(); if (S.state==='menu') demo();
+}
+document.querySelectorAll('input[name=skin]').forEach(i=>i.addEventListener('change',()=>setSkin(i.value)));
 function syncMenu(){
   $('oddsSect').hidden=!$('modeExt').checked;
   $('plNote').textContent=$('pl2').checked?'번갈아 한 개씩 올려요. 내 차례에 의자가 떨어지면 져요.':'최고 기록에 도전해요.';
@@ -723,9 +771,11 @@ document.querySelectorAll('input[name=mode],input[name=players]').forEach(i=>i.a
 
 /* ── 테마 변화 감지 ── */
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTheme);
-new MutationObserver(readTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+new MutationObserver(readTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 
-readTheme(); resize(); syncMenu(); demo();
+let savedSkin='basic'; try{ savedSkin=localStorage.getItem('chairstack.skin')||'basic'; }catch(e){}
+if (savedSkin==='class') $('skinClass').checked=true;
+setSkin(savedSkin); resize(); syncMenu(); demo();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ drawWheel(); });
 requestAnimationFrame(frame);
 })();
