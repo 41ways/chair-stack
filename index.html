@@ -370,14 +370,14 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
             <label class="opt"><input type="radio" name="cmode" id="cBasic" value="basic" checked><span>기본판</span></label>
             <label class="opt"><input type="radio" name="cmode" id="cExt" value="ext"><span>확장판</span></label>
           </div>
-          <label class="check" hidden><input type="checkbox" id="cPriv"> 비공개 방</label>
+          <label class="check"><input type="checkbox" id="cPriv"> 비공개 방 (목록에 안 보임)</label>
           <button class="primary" id="btnCreate" type="button">방 만들기</button>
         </div>
         <div class="sect">
           <label class="lab" for="joinCode">코드로 들어가기</label>
           <div class="field"><input class="code-inp" id="joinCode" maxlength="4" placeholder="ABCD" autocomplete="off"><button class="mini" id="btnJoin" type="button">들어가기</button></div>
         </div>
-        <div class="sect" hidden>
+        <div class="sect">
           <span class="lab">열린 방</span>
           <ul class="roomlist" id="roomList"><li class="empty">불러오는 중</li></ul>
         </div>
@@ -399,7 +399,7 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
             <label class="opt"><input type="radio" name="rmode" id="rBasic" value="basic"><span>기본판</span></label>
             <label class="opt"><input type="radio" name="rmode" id="rExt" value="ext"><span>확장판</span></label>
           </div>
-          <label class="check" hidden><input type="checkbox" id="rPriv"> 비공개 방</label>
+          <label class="check"><input type="checkbox" id="rPriv"> 비공개 방 (목록에 안 보임)</label>
           <span class="segnote" id="rNote"></span>
         </div>
         <div class="row">
@@ -759,10 +759,15 @@ function showOver(){
    그래서 방을 만든 사람이 나가면 방이 닫힌다 */
 const NET = { ws:null, q:[], code:null, you:null, token:null, room:null, seq:0, myTurn:false, ping:null, lastAim:0, aimKey:'', lastFr:0, leaving:false };
 const PEER_PREFIX='chairstack2d-';
-const P2P = { role:null, peer:null, conn:null, me:null, game:null, sweep:null, code:null };
+const P2P = { role:null, peer:null, conn:null, me:null, game:null, sweep:null, code:null, ann:null };
+// 열린 방 목록(lobby.js): 서버 없이, 먼저 온 브라우저 하나가 목록을 맡는다
+let LOBBY=null;
+async function lobby(){ return LOBBY || (LOBBY=(await import('./lobby.js')).makeLobby(PEER_PREFIX)); }
 function connect(cb){ cb&&cb(); }   // 실제 연결은 보내는 메시지(create·join·resume)를 보고 연다
 function sendNet(o){
-  if (o.t==='ping'||o.t==='rooms'||o.t==='unwatch') return;
+  if (o.t==='ping') return;
+  if (o.t==='rooms'){ lobby().then(L=>{ if (!$('multi').hidden) L.watch(list=>onNet({t:'rooms',list})); }).catch(()=>renderRooms([])); return; }
+  if (o.t==='unwatch'){ if (LOBBY) LOBBY.unwatch(); return; }
   if (o.t==='create'){ hostCreate(o); return; }
   if (o.t==='join'||o.t==='resume'){ guestJoin(o); return; }
   if (P2P.role==='host' && P2P.me){ try{ P2P.game.handle(P2P.me,o); }catch(e){ console.error(e); } return; }
@@ -783,6 +788,12 @@ async function hostCreate(o){
   peer.on('error',e=>{ if (P2P.peer!==peer) return;
     if (['unavailable-id','network','server-error','socket-error','browser-incompatible'].includes(e.type)){ toast('방을 열지 못했어요. 다시 만들어 주세요.'); if (S.multi) toHome(); else p2pClose(); } });
   peer.on('disconnected',()=>{ if (P2P.peer===peer) try{ peer.reconnect(); }catch(_){} });
+  peer.on('open',async()=>{   // 열린 방 목록에 올린다. room.js 의 목록 알림을 받아 그대로 넘긴다(비공개면 내림)
+    if (P2P.peer!==peer || P2P.ann) return;
+    const L=await lobby(); if (P2P.peer!==peer) return;
+    const ann=p2pSock(t=>{ const m=JSON.parse(t); if (m.t!=='rooms') return; const r=m.list[0]; L.announce(r&&!r.priv?r:null); });
+    P2P.ann=ann; game.handle(ann,{t:'rooms'});
+  });
   peer.on('connection',conn=>{
     const sock=p2pSock(t=>{ if (conn.open) conn.send(t); });
     conn.on('data',d=>{ let m; try{ m=JSON.parse(d); }catch(_){ return; }
@@ -815,10 +826,12 @@ function guestJoin(o){
   setTimeout(()=>{ if (P2P.peer===peer && !(P2P.conn&&P2P.conn.open)) lost('연결하지 못했어요. 코드를 확인하거나 다른 네트워크에서 해 보세요.'); },15000);
 }
 function p2pClose(){
-  const {peer,sweep,game,role}=P2P;
+  const {peer,sweep,game,role,ann}=P2P;
   clearInterval(sweep);
+  if (ann){ try{ game.handle(ann,{t:'unwatch'}); }catch(_){} ann.close(); }
+  if (role==='host' && LOBBY) LOBBY.announce(null);
   if (role==='host' && game){ for (const r of game.rooms.values()) if (r.timer) clearTimeout(r.timer); game.rooms.clear(); }
-  Object.assign(P2P,{ role:null, peer:null, conn:null, me:null, sweep:null, code:null });
+  Object.assign(P2P,{ role:null, peer:null, conn:null, me:null, sweep:null, code:null, ann:null });
   if (peer) setTimeout(()=>{ try{ peer.destroy(); }catch(_){} },250);
 }
 function savedRoom(){ try{ return JSON.parse(sessionStorage.getItem('chairstack.room')); }catch(_){ return null; } }
@@ -1389,6 +1402,7 @@ document.querySelectorAll('input[name=mode],input[name=players]').forEach(i=>i.a
 
 /* ── 버전 ── 새 버전은 맨 위에 한 줄 추가. 화면 오른쪽 위·메인 아래·CHANGELOG.md 가 이걸 따른다 */
 const VERSIONS=[
+  ['2.6','열린 방 목록 다시 생김. 눌러서 바로 들어가기. 서버 없이 브라우저 하나가 목록을 맡고, 나가면 다른 사람이 이어받음. 비공개 방 고르기도 다시 생김'],
   ['2.5','같이 하기를 서버 없이 브라우저끼리 바로 연결(P2P). 방을 만든 사람 화면이 방을 맡고, 그 사람이 나가면 방이 닫힘. 열린 방 목록 없앰(코드·초대 링크로 들어오기)'],
   ['2.4','한글 입력 상태에서도 F 뒤집기, A·D·Q·E·S 키가 먹음'],
   ['2.3','물리 엔진을 planck.js(Box2D)로 교체. 실제 크기·실제 중력, 공기 저항·속도 제한·기울이는 힘 없앰. 쌓아 둔 의자가 떨리지 않음'],
