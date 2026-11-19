@@ -348,7 +348,7 @@ kbd{font-family:var(--font-mono);font-size:11px;border:1px solid var(--panel-lin
         </div>
         <p class="keys">
           마우스 · 움직여서 위치, 우클릭을 누르고 있으면 회전(Shift는 반대로), 클릭으로 놓기<br>
-          키보드 · <kbd>←</kbd><kbd>→</kbd> 이동 <kbd>Q</kbd><kbd>E</kbd> 누르는 동안 회전 <kbd>F</kbd> 뒤집기 <kbd>Space</kbd> 놓기 <kbd>G</kbd> 누른 채 핑<br>
+          키보드 · <kbd>←</kbd><kbd>→</kbd> 이동 <kbd>Q</kbd><kbd>E</kbd> 누르는 동안 회전 <kbd>F</kbd> 뒤집기 <kbd>Space</kbd> 놓기 <kbd>G</kbd> 후 클릭 핑<br>
           터치 · 끌어서 위치, 탭하면 놓기
         </p>
         <button class="primary" id="btnStart" type="button">시작하기</button>
@@ -1413,6 +1413,7 @@ document.querySelectorAll('input[name=mode],input[name=players]').forEach(i=>i.a
 
 /* ── 버전 ── 새 버전은 맨 위에 한 줄 추가. 화면 오른쪽 위·메인 아래·CHANGELOG.md 가 이걸 따른다 */
 const VERSIONS=[
+  ['2.11','핑은 G를 누르면 커서가 금색 조준 고리로 바뀌고, 클릭한 자리에 원판이 뜸(끌어서 떼거나 한 번 더 눌러 고름). 원판 글자 빼고 기호 키움, 쉬는 중엔 가운데에 남은 초'],
   ['2.10','핑을 롤처럼: X자로 나뉜 금테 원판(위 위험!, 오른쪽 갑니다!, 왼쪽 미아!, 아래·가운데 취소), 찍힌 핑도 같은 아이콘'],
   ['2.9','핑 소리 넣음(물음표·위험·간다 각각)'],
   ['2.8','핑은 같이 할 때 남의 차례에만 찍힘(내 차례·혼자 할 때는 안 됨)'],
