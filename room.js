@@ -226,7 +226,7 @@ export function handle(ws, msg) {
       const g = me.mk || (me.mk = { n: 0, last: 0, until: 0 }), now = Date.now();
       const p = Array.isArray(msg.p) ? msg.p.slice(0, 2).map(Number) : [];
       if (!['q', 'd', 'go'].includes(msg.k) || p.length !== 2 || !p.every(v => Number.isFinite(v) && Math.abs(v) < 1e5)) return;
-      if (now < g.until) return;
+      if (myTurn || now < g.until) return;   // 내 차례에는 못 찍는다
       if (now - g.last > 5000) g.n = 0;
       g.n++; g.last = now;
       if (g.n >= 3) { g.until = now + 5000; g.n = 0; }
